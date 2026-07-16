@@ -1,0 +1,39 @@
+[Unit]
+Description=Vernal Pi Agent — sensor data collector and uplink
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=vernal
+Group=vernal
+WorkingDirectory=/opt/vernal-agent
+
+# Run the agent using the virtual environment Python
+ExecStart=/opt/vernal-agent/venv/bin/python3 -m agent.main
+
+# Restart automatically on any non-zero exit
+Restart=on-failure
+RestartSec=10
+StartLimitIntervalSec=60
+StartLimitBurst=5
+
+# Security hardening
+NoNewPrivileges=true
+ProtectSystem=strict
+ProtectHome=true
+ReadWritePaths=/var/lib/vernal
+ReadOnlyPaths=/etc/vernal
+PrivateTmp=true
+PrivateDevices=false   # false — needs access to USB RTL-SDR device and SPI
+
+# Environment
+Environment=PYTHONUNBUFFERED=1
+
+# Log to journal (accessible via journalctl -u vernal-agent)
+StandardOutput=journal
+StandardError=journal
+SyslogIdentifier=vernal-agent
+
+[Install]
+WantedBy=multi-user.target

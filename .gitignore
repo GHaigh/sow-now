@@ -1,0 +1,49 @@
+# Dependencies
+node_modules/
+.pnp
+.pnp.js
+
+# Build outputs
+dist/
+.output/
+.vercel/
+.wrangler/
+
+# Environment & secrets — NEVER COMMIT
+.dev.vars
+*.dev.vars
+.env
+.env.*
+!.env.example
+secrets.json
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Editor
+.vscode/settings.json
+.idea/
+*.swp
+*.swo
+
+# Logs
+*.log
+npm-debug.log*
+
+# Python (pi-agent)
+__pycache__/
+*.pyc
+*.pyo
+venv/
+.venv/
+*.egg-info/
+
+# SQLite local files
+*.db
+*.sqlite
+*.sqlite3
+
+# Compiled firmware
+pi-agent/firmware/.pio/
+pi-agent/firmware/build/

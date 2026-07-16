@@ -1,0 +1,16 @@
+# Local development secrets for Vernal API Worker
+# Copy this file to .dev.vars and fill in values.
+# NEVER commit .dev.vars to version control.
+
+# JWT secret for signing/verifying device tokens (min 32 random bytes, hex-encoded)
+# Generate with: node -e "console.log(require('crypto').randomBytes(32).toString('hex'))"
+DEVICE_JWT_SECRET=REPLACE_WITH_RANDOM_HEX_SECRET
+
+# VAPID keys for Web Push notifications
+# Generate with: npx web-push generate-vapid-keys
+VAPID_PUBLIC_KEY=REPLACE_WITH_VAPID_PUBLIC_KEY
+VAPID_PRIVATE_KEY=REPLACE_WITH_VAPID_PRIVATE_KEY
+VAPID_SUBJECT=mailto:hello@vernal.app
+
+# Environment
+ENVIRONMENT=development

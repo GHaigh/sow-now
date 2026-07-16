@@ -1,0 +1,11 @@
+{
+  "device_id":        "REPLACE_AT_MANUFACTURE",
+  "device_jwt":       "REPLACE_FROM_PROVISIONING",
+  "ingest_url":       "https://api.vernal.app/api/v1/ingest",
+  "db_path":          "/var/lib/vernal/readings.db",
+  "upload_interval_s": 300,
+  "rtl433_cmd":       "/usr/bin/rtl_433",
+  "lora_spi_bus":     0,
+  "lora_spi_device":  0,
+  "lora_frequency_hz": 433925000
+}

@@ -1,0 +1,97 @@
+{
+  "$schema": "./node_modules/wrangler/config-schema.json",
+  "name": "vernal-api",
+  "main": "src/index.ts",
+  "compatibility_date": "2025-05-01",
+  "compatibility_flags": ["nodejs_compat"],
+
+  "observability": {
+    "enabled": true
+  },
+
+  // ── D1 Database ────────────────────────────────────────────────────────────
+  "d1_databases": [
+    {
+      "binding": "DB",
+      "database_name": "vernal-db",
+      "database_id": "REPLACE_WITH_YOUR_D1_ID",
+      "migrations_dir": "../../migrations"
+    }
+  ],
+
+  // ── KV — sessions & subscription tier cache ────────────────────────────────
+  "kv_namespaces": [
+    {
+      "binding": "SESSIONS",
+      "id": "REPLACE_WITH_YOUR_KV_ID"
+    }
+  ],
+
+  // ── Queue — advice generation jobs ─────────────────────────────────────────
+  "queues": {
+    "producers": [
+      {
+        "binding": "ADVICE_QUEUE",
+        "queue": "vernal-advice-queue"
+      }
+    ],
+    "consumers": [
+      {
+        "queue": "vernal-advice-queue",
+        "max_batch_size": 10,
+        "max_batch_timeout": 30,
+        "max_retries": 3
+      }
+    ]
+  },
+
+  // ── Durable Objects — per-device GDD state ─────────────────────────────────
+  "durable_objects": {
+    "bindings": [
+      {
+        "name": "DEVICE_STATE",
+        "class_name": "DeviceStateDO"
+      }
+    ]
+  },
+  "migrations": [
+    {
+      "tag": "v1",
+      "new_classes": ["DeviceStateDO"]
+    }
+  ],
+
+  // ── Workers AI ─────────────────────────────────────────────────────────────
+  "ai": {
+    "binding": "AI"
+  },
+
+  // ── Vectorize — crop knowledge base ────────────────────────────────────────
+  "vectorize": [
+    {
+      "binding": "CROP_INDEX",
+      "index_name": "vernal-crops"
+    }
+  ],
+
+  // ── Cron triggers — GDD engine runs at 05:30 UTC daily ────────────────────
+  "triggers": {
+    "crons": ["30 5 * * *"]
+  },
+
+  // ── Environments ───────────────────────────────────────────────────────────
+  "env": {
+    "staging": {
+      "name": "vernal-api-staging",
+      "vars": {
+        "ENVIRONMENT": "staging"
+      }
+    },
+    "production": {
+      "name": "vernal-api",
+      "vars": {
+        "ENVIRONMENT": "production"
+      }
+    }
+  }
+}
