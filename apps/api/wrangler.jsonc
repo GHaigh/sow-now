@@ -14,7 +14,7 @@
     {
       "binding": "DB",
       "database_name": "vernal-db",
-      "database_id": "REPLACE_WITH_YOUR_D1_ID",
+      "database_id": "ea16b6f5-180e-4a00-ae79-c03daff06bc8",
       "migrations_dir": "../../migrations"
     }
   ],
@@ -23,7 +23,7 @@
   "kv_namespaces": [
     {
       "binding": "SESSIONS",
-      "id": "REPLACE_WITH_YOUR_KV_ID"
+      "id": "920877451b624246ba8616b811951d73"
     }
   ],
 
@@ -57,7 +57,7 @@
   "migrations": [
     {
       "tag": "v1",
-      "new_classes": ["DeviceStateDO"]
+      "new_sqlite_classes": ["DeviceStateDO"]
     }
   ],
 
