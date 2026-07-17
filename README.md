@@ -35,7 +35,7 @@ vernal/
 ### 1. Clone and install
 
 ```bash
-git clone https://github.com/YOUR_ORG/vernal.git
+git clone https://github.com/GHaigh/vernal.git
 cd vernal
 npm install
 ```
