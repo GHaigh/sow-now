@@ -10,6 +10,9 @@ export interface Env {
   // ── KV ──────────────────────────────────────────────────────────────────
   SESSIONS: KVNamespace;
 
+  // ── Email sending ────────────────────────────────────────────────────────
+  EMAIL: SendEmail;
+
   // ── Queues ───────────────────────────────────────────────────────────────
   ADVICE_QUEUE: Queue;
 
@@ -27,6 +30,11 @@ export interface Env {
   VAPID_PUBLIC_KEY: string;
   VAPID_PRIVATE_KEY: string;
   VAPID_SUBJECT: string;
+  // Stripe
+  STRIPE_SECRET_KEY: string;
+  STRIPE_WEBHOOK_SECRET: string;
+  STRIPE_PRICE_GROWER: string;
+  STRIPE_PRICE_SMALLHOLDER: string;
 
   // ── Vars ─────────────────────────────────────────────────────────────────
   ENVIRONMENT: string;

@@ -14,8 +14,9 @@ async function importKey(secret: string): Promise<CryptoKey> {
   return crypto.subtle.importKey('raw', enc.encode(secret), ALG, false, ['sign', 'verify']);
 }
 
-function base64UrlEncode(buf: ArrayBuffer): string {
-  return btoa(String.fromCharCode(...new Uint8Array(buf)))
+function base64UrlEncode(buf: ArrayBuffer | Uint8Array): string {
+  const bytes = buf instanceof Uint8Array ? buf : new Uint8Array(buf);
+  return btoa(String.fromCharCode(...bytes))
     .replace(/\+/g, '-')
     .replace(/\//g, '_')
     .replace(/=+$/, '');

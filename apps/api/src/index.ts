@@ -15,18 +15,20 @@
  *   GDD engine + advice generation
  */
 
-import { handleIngest }       from './routes/ingest';
-import { handleProvision }    from './routes/provision';
-import { handleLiveReadings } from './routes/live';
-import { handleDashboard }    from './routes/dashboard';
-import { handleAdvice }       from './routes/advice';
-import { handleCrops }        from './routes/crops';
-import { handleAuth, getMe }  from './routes/auth';
-import { handleSensors }      from './routes/sensors';
-import { handleAdviceQueue }  from './queue/advice-consumer';
-import { runGddEngine }       from './cron/gdd-engine';
+import { handleIngest }          from './routes/ingest';
+import { handleProvision }       from './routes/provision';
+import { handleLiveReadings }    from './routes/live';
+import { handleDashboard }       from './routes/dashboard';
+import { handleAdvice }          from './routes/advice';
+import { handleCrops }           from './routes/crops';
+import { handleAuth, getMe }     from './routes/auth';
+import { handleSensors }         from './routes/sensors';
+import { handleBilling }         from './routes/billing';
+import { handleStripeWebhook }   from './routes/stripe-webhook';
+import { handleAdviceQueue }     from './queue/advice-consumer';
+import { runGddEngine }          from './cron/gdd-engine';
 import { corsHeaders, errorResponse } from './lib/http';
-import type { Env }           from './types/env';
+import type { Env }              from './types/env';
 
 export { DeviceStateDO } from './durable-objects/device-state';
 
@@ -71,6 +73,16 @@ export default {
         return handleSensors(request, env, ctx);
       }
 
+      // ── Billing routes (user session auth) ───────────────────────────────
+      if (path.startsWith('/api/v1/billing')) {
+        return handleBilling(request, env, ctx);
+      }
+
+      // ── Stripe webhook (Stripe signature auth — no user session) ─────────
+      if (path === '/api/v1/webhooks/stripe' && request.method === 'POST') {
+        return handleStripeWebhook(request, env, ctx);
+      }
+
       return errorResponse(404, 'Not found');
     } catch (err) {
       // Log full error server-side; return generic message to client
@@ -80,7 +92,7 @@ export default {
   },
 
   // ── Cron: GDD engine runs at 05:30 UTC daily ─────────────────────────────
-  async scheduled(_event: ScheduledEvent, env: Env, ctx: ExecutionContext): Promise<void> {
+  async scheduled(_controller: ScheduledController, env: Env, ctx: ExecutionContext): Promise<void> {
     ctx.waitUntil(runGddEngine(env));
   },
 

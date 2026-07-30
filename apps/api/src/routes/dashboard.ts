@@ -86,11 +86,3 @@ export async function handleDashboard(
   }, 200, request);
 }
 
-/** Validate session and return userId — returns null if invalid */
-async function getUserIdFromSession(request: Request, env: Env): Promise<string | null> {
-  const auth = request.headers.get('Authorization');
-  if (!auth?.startsWith('Bearer ')) return null;
-  const token = auth.slice(7);
-  const userId = await env.SESSIONS.get(`session:${token}`);
-  return userId;
-}

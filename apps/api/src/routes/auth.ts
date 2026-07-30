@@ -199,10 +199,59 @@ async function sendEmail(email: string, magicUrl: string, env: Env): Promise<voi
     console.log(`[DEV] Magic link for ${email}: ${magicUrl}`);
     return;
   }
-  // Production: use Cloudflare Email Workers send API
-  // This requires configuring an email sending domain in Cloudflare dashboard
-  // and binding an email channel — see docs/email-setup.md
-  console.log(`[EMAIL] Sending magic link to ${email}`);
+
+  const html = `
+<!DOCTYPE html>
+<html lang="en">
+<head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"></head>
+<body style="margin:0;padding:0;font-family:system-ui,sans-serif;background:#f9fafb;">
+  <table width="100%" cellpadding="0" cellspacing="0" style="padding:40px 20px;">
+    <tr><td align="center">
+      <table width="100%" style="max-width:520px;background:#fff;border-radius:12px;border:1px solid #e5e7eb;padding:40px;">
+        <tr><td align="center" style="padding-bottom:24px;">
+          <div style="font-size:36px;">🌱</div>
+          <div style="font-size:22px;font-weight:800;color:#166534;letter-spacing:-0.5px;">Sow Now</div>
+        </td></tr>
+        <tr><td style="padding-bottom:16px;">
+          <h1 style="margin:0 0 8px;font-size:20px;color:#111827;">Your sign-in link</h1>
+          <p style="margin:0;font-size:15px;color:#6b7280;line-height:1.6;">
+            Click the button below to sign in to your Sow Now account.
+            This link expires in 15 minutes and can only be used once.
+          </p>
+        </td></tr>
+        <tr><td align="center" style="padding:24px 0;">
+          <a href="${magicUrl}"
+             style="display:inline-block;background:#166534;color:#fff;text-decoration:none;
+                    font-size:16px;font-weight:700;padding:14px 36px;border-radius:8px;">
+            Sign in to Sow Now
+          </a>
+        </td></tr>
+        <tr><td style="padding-top:16px;border-top:1px solid #f3f4f6;">
+          <p style="margin:0;font-size:12px;color:#9ca3af;line-height:1.6;">
+            If you didn't request this, you can safely ignore this email.<br>
+            Link: <a href="${magicUrl}" style="color:#166534;word-break:break-all;">${magicUrl}</a>
+          </p>
+        </td></tr>
+      </table>
+    </td></tr>
+  </table>
+</body>
+</html>`.trim();
+
+  const text = `Sign in to Sow Now\n\nClick this link to sign in (expires in 15 minutes):\n\n${magicUrl}\n\nIf you didn't request this, ignore this email.`;
+
+  try {
+    await env.EMAIL.send({
+      to: email,
+      from: { email: 'hello@sow-now.uk', name: 'Sow Now' },
+      subject: 'Your Sow Now sign-in link',
+      html,
+      text,
+    });
+  } catch (err: any) {
+    // Log server-side only — do not expose delivery errors to client
+    console.error('Email send failed:', err?.code, err?.message);
+  }
 }
 
 export async function getUserIdFromSession(request: Request, env: Env): Promise<string | null> {

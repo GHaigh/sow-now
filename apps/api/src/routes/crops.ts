@@ -120,9 +120,3 @@ async function deleteCrop(userId: string, cropId: string, env: Env, request: Req
   return jsonResponse({ ok: true }, 200, request);
 }
 
-async function getUserIdFromSession(request: Request, env: Env): Promise<string | null> {
-  const auth = request.headers.get('Authorization');
-  if (!auth?.startsWith('Bearer ')) return null;
-  const token = auth.slice(7);
-  return env.SESSIONS.get(`session:${token}`);
-}

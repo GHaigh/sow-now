@@ -6,6 +6,7 @@ import { DashboardPage } from './pages/Dashboard';
 import { AdvicePage } from './pages/Advice';
 import { CropsPage } from './pages/Crops';
 import { SensorsPage } from './pages/Sensors';
+import { SettingsPage } from './pages/Settings';
 import { LoginPage } from './pages/Login';
 import { AppShell } from './components/AppShell';
 
@@ -21,6 +22,7 @@ function ProtectedRoutes() {
         <Route path="/advice" element={<AdvicePage />} />
         <Route path="/crops" element={<CropsPage />} />
         <Route path="/sensors" element={<SensorsPage />} />
+        <Route path="/settings" element={<SettingsPage />} />
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
     </AppShell>

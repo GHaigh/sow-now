@@ -2,10 +2,11 @@ import { NavLink } from 'react-router-dom';
 import styles from './AppShell.module.css';
 
 const NAV = [
-  { to: '/',        icon: '🌱', label: 'Today'   },
-  { to: '/advice',  icon: '💡', label: 'Advice'  },
-  { to: '/crops',   icon: '🥕', label: 'Crops'   },
-  { to: '/sensors', icon: '📡', label: 'Sensors' },
+  { to: '/',         icon: '🌱', label: 'Today'    },
+  { to: '/advice',   icon: '💡', label: 'Advice'   },
+  { to: '/crops',    icon: '🥕', label: 'Crops'    },
+  { to: '/sensors',  icon: '📡', label: 'Sensors'  },
+  { to: '/settings', icon: '⚙️', label: 'Settings' },
 ];
 
 export function AppShell({ children }: { children: React.ReactNode }) {

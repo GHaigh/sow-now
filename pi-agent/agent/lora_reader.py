@@ -2,16 +2,16 @@
 LoRa reader — receives soil moisture and greenhouse sensor node packets.
 
 Uses the SX1262 HAT connected via SPI on the Raspberry Pi Zero 2W.
-The SX1262 listens on 433.925 MHz (offset from WS69's 433.920 MHz to
-avoid any potential interference, different modulation anyway).
+The SX1262 listens on 868.1 MHz matching the ATtiny85 sensor node firmware.
 
-Sensor node packet format (12 bytes, AES-128 encrypted):
-  Byte 0:     Node ID (1 byte)
-  Byte 1:     Sensor type: 0x01=soil, 0x02=greenhouse
-  Bytes 2–3:  Moisture / temp raw ADC (uint16 big-endian)
-  Bytes 4–5:  Secondary reading (soil temp OR greenhouse humidity, uint16)
-  Bytes 6–7:  Battery mV (uint16 big-endian)
-  Bytes 8–11: Message counter (uint32, replay protection)
+Sensor node packet format (16 bytes, AES-128-ECB encrypted):
+  Byte 0:     node_id       (uint8)
+  Byte 1:     node_type     (uint8) 0x01=soil, 0x02=greenhouse
+  Bytes 2–3:  temperature   (int16 BE, °C × 10)  e.g. 215 = 21.5°C
+  Bytes 4–5:  soil_moisture (uint16 BE, % × 10)  e.g. 650 = 65.0%
+  Bytes 6–7:  battery_mv    (uint16 BE, mV)       e.g. 3310 = 3.31V
+  Bytes 8–9:  counter       (uint16 BE, monotonic — replay protection)
+  Bytes 10–15: reserved/zero
 
 Decryption uses AES-128-ECB with the node's pre-shared key.
 Keys are provisioned at manufacture and stored in /etc/sow-now/node_keys.json.
@@ -29,12 +29,15 @@ log = logging.getLogger("sow-now.lora")
 
 NODE_KEYS_PATH = Path("/etc/sow-now/node_keys.json")
 
-# LoRa parameters matching the sensor node firmware
-LORA_FREQUENCY   = 433_925_000   # Hz
-LORA_SF          = 7             # Spreading factor
+# LoRa parameters — MUST match sensor-node firmware (config.h)
+LORA_FREQUENCY   = 868_100_000   # Hz — EU868 ch0
+LORA_SF          = 8             # Spreading factor
 LORA_BW          = 125_000       # Bandwidth Hz
 LORA_CR          = 5             # Coding rate 4/5
 LORA_PREAMBLE    = 8
+
+# Packet size — must match PACKET_SIZE in firmware config.h
+PACKET_SIZE      = 16
 
 # Sensor type bytes
 SENSOR_SOIL      = 0x01
@@ -109,59 +112,64 @@ class LoraReader:
 
     def _decode_and_buffer(self, raw: bytes, buffer: Any) -> None:
         """Decrypt and decode a LoRa packet, write to buffer."""
-        if len(raw) < 12:
-            log.debug("Short LoRa packet (%d bytes) — discarding", len(raw))
+        if len(raw) != PACKET_SIZE:
+            log.debug("Unexpected LoRa packet length %d (expected %d) — discarding", len(raw), PACKET_SIZE)
             return
 
-        node_id = raw[0]
-        payload = self._decrypt_packet(node_id, raw[1:])
-        if payload is None:
+        # The entire 16-byte packet is AES-encrypted; node_id is in byte 0 plaintext
+        # but we must peek it to select the decryption key.  Because byte 0 of the
+        # plaintext always encodes the node_id and AES-ECB is deterministic, the
+        # first byte of ciphertext leaks nothing useful to an attacker without the key.
+        # The full 16-byte block is decrypted in one pass.
+        node_id_hint = raw[0]
+        plaintext = self._decrypt_packet(node_id_hint, raw)
+        if plaintext is None:
             return
 
-        sensor_type_byte = payload[0]
-        raw_a, raw_b, battery_mv, counter = struct.unpack(">HHHH", payload[1:9])
+        node_id      = plaintext[0]
+        node_type    = plaintext[1]
+        temp_tenths  = struct.unpack(">h", plaintext[2:4])[0]   # signed int16
+        moist_tenths = struct.unpack(">H", plaintext[4:6])[0]   # unsigned int16
+        battery_mv   = struct.unpack(">H", plaintext[6:8])[0]
+        counter      = struct.unpack(">H", plaintext[8:10])[0]
 
-        # Replay attack protection
+        # Replay attack protection (counter is uint16, rolls over at 65535)
         last_counter = self._seen_counters.get(node_id, -1)
-        if counter <= last_counter:
+        if last_counter >= 0 and counter <= last_counter and (last_counter - counter) < 32768:
             log.warning("Replay detected: node=%d counter=%d (last=%d)", node_id, counter, last_counter)
             return
         self._seen_counters[node_id] = counter
 
+        temp_c      = round(temp_tenths / 10.0, 1)
+        moisture_pct = round(moist_tenths / 10.0, 1)
         battery_pct = min(100, max(0, int((battery_mv - 2400) / (3200 - 2400) * 100)))
         sensor_rf_id = f"lora_{node_id}"
 
-        if sensor_type_byte == SENSOR_SOIL:
-            # raw_a = moisture ADC, raw_b = soil temp (raw, 0.1°C resolution)
-            moisture_pct = round((raw_a / 4095) * 100, 1)
-            soil_temp_c  = round((raw_b - 500) / 10.0, 1)
+        if node_type == SENSOR_SOIL:
             reading: dict = {
-                "sensor_rf_id":     sensor_rf_id,
-                "sensor_type":      "soil",
-                "recorded_at":      int(time.time()),
+                "sensor_rf_id":      sensor_rf_id,
+                "sensor_type":       "soil",
+                "recorded_at":       int(time.time()),
                 "soil_moisture_pct": moisture_pct,
-                "soil_temp_c":      soil_temp_c,
-                "battery_pct":      battery_pct,
+                "soil_temp_c":       temp_c,
+                "battery_pct":       battery_pct,
             }
             log.debug("Soil node %d: moisture=%.1f%% soil_temp=%.1f°C bat=%d%%",
-                      node_id, moisture_pct, soil_temp_c, battery_pct)
+                      node_id, moisture_pct, temp_c, battery_pct)
 
-        elif sensor_type_byte == SENSOR_GREENHOUSE:
-            # raw_a = greenhouse temp (0.1°C), raw_b = humidity (0.1%)
-            gh_temp_c   = round((raw_a - 500) / 10.0, 1)
-            gh_humidity = round(raw_b / 10.0, 1)
+        elif node_type == SENSOR_GREENHOUSE:
             reading = {
-                "sensor_rf_id":              sensor_rf_id,
-                "sensor_type":               "greenhouse",
-                "recorded_at":               int(time.time()),
-                "greenhouse_temp_c":         gh_temp_c,
-                "greenhouse_humidity_pct":   gh_humidity,
-                "battery_pct":               battery_pct,
+                "sensor_rf_id":            sensor_rf_id,
+                "sensor_type":             "greenhouse",
+                "recorded_at":             int(time.time()),
+                "greenhouse_temp_c":       temp_c,
+                "greenhouse_humidity_pct": moisture_pct,  # byte 4-5 = humidity for GH nodes
+                "battery_pct":             battery_pct,
             }
             log.debug("Greenhouse node %d: temp=%.1f°C hum=%.1f%% bat=%d%%",
-                      node_id, gh_temp_c, gh_humidity, battery_pct)
+                      node_id, temp_c, moisture_pct, battery_pct)
         else:
-            log.warning("Unknown sensor type byte 0x%02x from node %d", sensor_type_byte, node_id)
+            log.warning("Unknown node_type 0x%02x from node %d", node_type, node_id)
             return
 
         buffer.insert(reading)
