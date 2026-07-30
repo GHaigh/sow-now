@@ -1,0 +1,1239 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <meta name="theme-color" content="#166534" />
+  <title>Sow Now — Grow smarter, not harder</title>
+  <meta name="description" content="Sow Now turns your garden's own sensor data into precise daily growing advice. Know exactly when to sow, water, and harvest — powered by real science, not guesswork." />
+
+  <!-- Open Graph -->
+  <meta property="og:title" content="Sow Now — Grow smarter, not harder" />
+  <meta property="og:description" content="Local sensors + Growing Degree Day science = daily advice for your garden. From £99." />
+  <meta property="og:url" content="https://sow-now.uk" />
+  <meta property="og:type" content="website" />
+
+  <link rel="icon" type="image/x-icon" href="/favicon.ico" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+
+  <style>
+    /* ── Reset ─────────────────────────────────────────── */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --green-900: #14532d;
+      --green-800: #166534;
+      --green-700: #15803d;
+      --green-100: #dcfce7;
+      --green-50:  #f0fdf4;
+      --amber:     #d97706;
+      --amber-50:  #fffbeb;
+      --grey-900:  #1f2328;
+      --grey-600:  #57606a;
+      --grey-200:  #e5e7eb;
+      --grey-100:  #f7f8fa;
+      --white:     #ffffff;
+      --max:       1100px;
+      --radius:    14px;
+    }
+
+    html {
+      font-family: -apple-system, "Segoe UI", system-ui, sans-serif;
+      font-size: 16px;
+      line-height: 1.6;
+      color: var(--grey-900);
+      scroll-behavior: smooth;
+    }
+
+    body { background: var(--white); overflow-x: hidden; }
+
+    img { max-width: 100%; display: block; }
+    a   { color: inherit; }
+
+    /* ── Layout helpers ────────────────────────────────── */
+    .container {
+      max-width: var(--max);
+      margin: 0 auto;
+      padding: 0 20px;
+    }
+
+    /* ── Nav ───────────────────────────────────────────── */
+    nav {
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      background: rgba(255,255,255,.92);
+      backdrop-filter: blur(12px);
+      border-bottom: 1px solid var(--grey-200);
+    }
+
+    .nav-inner {
+      max-width: var(--max);
+      margin: 0 auto;
+      padding: 0 20px;
+      height: 60px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .nav-logo {
+      font-size: 1.2rem;
+      font-weight: 800;
+      color: var(--green-800);
+      text-decoration: none;
+      letter-spacing: -0.5px;
+    }
+
+    .nav-links {
+      display: flex;
+      align-items: center;
+      gap: 28px;
+      list-style: none;
+    }
+
+    .nav-links a {
+      font-size: 0.9rem;
+      font-weight: 500;
+      color: var(--grey-600);
+      text-decoration: none;
+      transition: color .15s;
+    }
+
+    .nav-links a:hover { color: var(--green-800); }
+
+    .nav-cta {
+      background: var(--green-800) !important;
+      color: var(--white) !important;
+      padding: 8px 18px;
+      border-radius: 8px;
+      font-weight: 700 !important;
+    }
+
+    @media (max-width: 600px) {
+      .nav-links { display: none; }
+    }
+
+    /* ── Buttons ───────────────────────────────────────── */
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      padding: 14px 28px;
+      border: none;
+      border-radius: var(--radius);
+      font-size: 1rem;
+      font-weight: 700;
+      cursor: pointer;
+      text-decoration: none;
+      transition: opacity .15s, transform .1s;
+    }
+    .btn:active { transform: scale(.98); }
+    .btn-primary   { background: var(--green-800); color: var(--white); }
+    .btn-secondary { background: var(--grey-100); color: var(--grey-900); border: 1.5px solid var(--grey-200); }
+    .btn-lg        { padding: 16px 36px; font-size: 1.05rem; }
+
+    /* ── Hero ──────────────────────────────────────────── */
+    .hero {
+      background: linear-gradient(160deg, var(--green-900) 0%, var(--green-700) 100%);
+      color: var(--white);
+      padding: 80px 20px 100px;
+      text-align: center;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .hero::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23ffffff' fill-opacity='0.03'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
+    }
+
+    .hero-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      background: rgba(255,255,255,.15);
+      border: 1px solid rgba(255,255,255,.25);
+      border-radius: 20px;
+      padding: 5px 14px;
+      font-size: 0.8rem;
+      font-weight: 600;
+      margin-bottom: 24px;
+    }
+
+    .hero h1 {
+      font-size: clamp(2.2rem, 6vw, 3.8rem);
+      font-weight: 900;
+      letter-spacing: -1.5px;
+      line-height: 1.1;
+      max-width: 720px;
+      margin: 0 auto 20px;
+    }
+
+    .hero h1 em {
+      font-style: normal;
+      color: #86efac;
+    }
+
+    .hero p {
+      font-size: clamp(1rem, 2.5vw, 1.2rem);
+      color: rgba(255,255,255,.85);
+      max-width: 560px;
+      margin: 0 auto 36px;
+    }
+
+    .hero-buttons {
+      display: flex;
+      gap: 12px;
+      justify-content: center;
+      flex-wrap: wrap;
+    }
+
+    .hero-proof {
+      margin-top: 56px;
+      font-size: 0.82rem;
+      color: rgba(255,255,255,.6);
+    }
+
+    /* Phone mockup */
+    .hero-mockup {
+      margin: 48px auto 0;
+      max-width: 280px;
+      position: relative;
+    }
+
+    .mockup-frame {
+      background: #1a1a2e;
+      border-radius: 32px;
+      padding: 12px;
+      border: 3px solid rgba(255,255,255,.15);
+    }
+
+    .mockup-screen {
+      background: #f7f8fa;
+      border-radius: 22px;
+      overflow: hidden;
+    }
+
+    .mockup-bar {
+      height: 8px;
+      background: var(--green-700);
+    }
+
+    .mockup-header {
+      padding: 14px 14px 8px;
+      background: white;
+      border-bottom: 1px solid #f0f0f0;
+    }
+
+    .mockup-title {
+      font-size: 1.1rem;
+      font-weight: 800;
+      color: var(--grey-900);
+    }
+
+    .mockup-sub {
+      font-size: 0.65rem;
+      color: #9ca3af;
+    }
+
+    .mockup-body { padding: 10px 12px; }
+
+    .mockup-gdd {
+      display: flex;
+      gap: 8px;
+      margin-bottom: 10px;
+    }
+
+    .mockup-gdd-card {
+      flex: 1;
+      background: white;
+      border-radius: 10px;
+      padding: 10px 8px;
+      text-align: center;
+      box-shadow: 0 1px 3px rgba(0,0,0,.06);
+    }
+
+    .mockup-gdd-num {
+      font-size: 1.4rem;
+      font-weight: 800;
+      color: var(--green-800);
+      line-height: 1;
+    }
+
+    .mockup-gdd-label {
+      font-size: 0.55rem;
+      color: #9ca3af;
+      text-transform: uppercase;
+      letter-spacing: .04em;
+      margin-top: 2px;
+    }
+
+    .mockup-card {
+      background: white;
+      border-radius: 10px;
+      padding: 10px;
+      margin-bottom: 8px;
+      box-shadow: 0 1px 3px rgba(0,0,0,.06);
+    }
+
+    .mockup-card-title {
+      font-size: 0.65rem;
+      font-weight: 700;
+      color: var(--grey-900);
+      margin-bottom: 3px;
+    }
+
+    .mockup-card-body {
+      font-size: 0.6rem;
+      color: var(--grey-600);
+      line-height: 1.4;
+    }
+
+    .mockup-advice {
+      background: var(--green-800);
+      border-radius: 10px;
+      padding: 10px;
+      margin-bottom: 8px;
+    }
+
+    .mockup-advice-title {
+      font-size: 0.65rem;
+      font-weight: 800;
+      color: white;
+      margin-bottom: 5px;
+    }
+
+    .mockup-advice-item {
+      display: flex;
+      gap: 5px;
+      margin-bottom: 4px;
+    }
+
+    .mockup-advice-num {
+      font-size: 0.55rem;
+      font-weight: 800;
+      color: #86efac;
+      flex-shrink: 0;
+    }
+
+    .mockup-advice-text {
+      font-size: 0.57rem;
+      color: rgba(255,255,255,.9);
+      line-height: 1.35;
+    }
+
+    /* ── Section shared ────────────────────────────────── */
+    section { padding: 80px 0; }
+
+    .section-label {
+      font-size: 0.75rem;
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: .1em;
+      color: var(--green-800);
+      margin-bottom: 10px;
+    }
+
+    .section-title {
+      font-size: clamp(1.7rem, 4vw, 2.6rem);
+      font-weight: 900;
+      letter-spacing: -1px;
+      line-height: 1.15;
+      margin-bottom: 16px;
+    }
+
+    .section-body {
+      font-size: 1.05rem;
+      color: var(--grey-600);
+      max-width: 560px;
+      margin-bottom: 40px;
+    }
+
+    /* ── How it works ──────────────────────────────────── */
+    .how { background: var(--grey-100); }
+
+    .steps {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: 24px;
+      margin-top: 48px;
+    }
+
+    .step-card {
+      background: var(--white);
+      border-radius: var(--radius);
+      padding: 28px 24px;
+      position: relative;
+    }
+
+    .step-num {
+      width: 36px;
+      height: 36px;
+      border-radius: 50%;
+      background: var(--green-800);
+      color: var(--white);
+      font-weight: 900;
+      font-size: 0.9rem;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin-bottom: 16px;
+    }
+
+    .step-card h3 {
+      font-size: 1rem;
+      font-weight: 700;
+      margin-bottom: 6px;
+    }
+
+    .step-card p {
+      font-size: 0.88rem;
+      color: var(--grey-600);
+    }
+
+    /* ── Features ──────────────────────────────────────── */
+    .features-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 20px;
+      margin-top: 48px;
+    }
+
+    .feature-card {
+      border: 1.5px solid var(--grey-200);
+      border-radius: var(--radius);
+      padding: 28px 24px;
+      transition: border-color .2s;
+    }
+
+    .feature-card:hover { border-color: var(--green-700); }
+
+    .feature-icon {
+      font-size: 2rem;
+      margin-bottom: 14px;
+    }
+
+    .feature-card h3 {
+      font-size: 1.05rem;
+      font-weight: 700;
+      margin-bottom: 6px;
+    }
+
+    .feature-card p {
+      font-size: 0.88rem;
+      color: var(--grey-600);
+      line-height: 1.6;
+    }
+
+    /* ── Science section ───────────────────────────────── */
+    .science { background: var(--green-50); }
+
+    .science-split {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 60px;
+      align-items: center;
+    }
+
+    @media (max-width: 700px) {
+      .science-split { grid-template-columns: 1fr; gap: 32px; }
+    }
+
+    .gdd-formula {
+      background: var(--green-900);
+      border-radius: var(--radius);
+      padding: 28px;
+      color: var(--white);
+      font-family: ui-monospace, monospace;
+    }
+
+    .gdd-formula .formula-title {
+      font-size: 0.7rem;
+      color: #86efac;
+      text-transform: uppercase;
+      letter-spacing: .1em;
+      margin-bottom: 16px;
+      font-family: system-ui;
+    }
+
+    .gdd-formula .formula {
+      font-size: 0.95rem;
+      line-height: 2;
+      color: #e2e8f0;
+    }
+
+    .gdd-formula .formula strong {
+      color: #86efac;
+    }
+
+    .gdd-table {
+      margin-top: 20px;
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.85rem;
+    }
+
+    .gdd-table th {
+      text-align: left;
+      padding: 8px 10px;
+      background: rgba(255,255,255,.08);
+      color: #86efac;
+      font-size: 0.7rem;
+      text-transform: uppercase;
+      letter-spacing: .05em;
+    }
+
+    .gdd-table td {
+      padding: 8px 10px;
+      color: #e2e8f0;
+      border-bottom: 1px solid rgba(255,255,255,.06);
+    }
+
+    /* ── Kits ──────────────────────────────────────────── */
+    .kits { background: var(--white); }
+
+    .kits-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 20px;
+      margin-top: 48px;
+    }
+
+    .kit-card {
+      border: 2px solid var(--grey-200);
+      border-radius: var(--radius);
+      overflow: hidden;
+      transition: border-color .2s;
+    }
+
+    .kit-card.featured {
+      border-color: var(--green-800);
+    }
+
+    .kit-header {
+      padding: 20px 24px 16px;
+      background: var(--grey-100);
+    }
+
+    .kit-card.featured .kit-header {
+      background: var(--green-800);
+      color: var(--white);
+    }
+
+    .kit-popular {
+      display: inline-block;
+      font-size: 0.7rem;
+      font-weight: 700;
+      background: #fef08a;
+      color: var(--grey-900);
+      padding: 2px 8px;
+      border-radius: 8px;
+      margin-bottom: 8px;
+      text-transform: uppercase;
+      letter-spacing: .05em;
+    }
+
+    .kit-name {
+      font-size: 1.2rem;
+      font-weight: 800;
+      margin-bottom: 4px;
+    }
+
+    .kit-price {
+      font-size: 2.4rem;
+      font-weight: 900;
+      letter-spacing: -1px;
+      line-height: 1;
+    }
+
+    .kit-card.featured .kit-price { color: var(--white); }
+
+    .kit-price sup {
+      font-size: 1rem;
+      font-weight: 700;
+      vertical-align: top;
+      margin-top: 8px;
+    }
+
+    .kit-body { padding: 20px 24px; }
+
+    .kit-includes {
+      font-size: 0.75rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: .07em;
+      color: var(--grey-600);
+      margin-bottom: 10px;
+    }
+
+    .kit-items {
+      list-style: none;
+      margin-bottom: 20px;
+    }
+
+    .kit-items li {
+      display: flex;
+      gap: 8px;
+      font-size: 0.88rem;
+      margin-bottom: 7px;
+      color: var(--grey-900);
+    }
+
+    .kit-items li::before {
+      content: '✓';
+      color: var(--green-700);
+      font-weight: 700;
+      flex-shrink: 0;
+    }
+
+    .kit-sub-note {
+      font-size: 0.78rem;
+      color: var(--grey-600);
+      margin-top: 12px;
+      padding-top: 12px;
+      border-top: 1px solid var(--grey-200);
+    }
+
+    /* ── Subscription tiers ────────────────────────────── */
+    .subs { background: var(--grey-100); }
+
+    .tiers-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+      gap: 16px;
+      margin-top: 40px;
+    }
+
+    .tier-card {
+      background: var(--white);
+      border: 2px solid var(--grey-200);
+      border-radius: var(--radius);
+      padding: 24px;
+    }
+
+    .tier-card.featured {
+      border-color: var(--green-800);
+    }
+
+    .tier-name {
+      font-size: 0.8rem;
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: .07em;
+      color: var(--grey-600);
+      margin-bottom: 4px;
+    }
+
+    .tier-price {
+      font-size: 2rem;
+      font-weight: 900;
+      letter-spacing: -1px;
+      line-height: 1;
+      margin-bottom: 4px;
+    }
+
+    .tier-period { font-size: 0.85rem; color: var(--grey-600); }
+
+    .tier-features {
+      list-style: none;
+      margin-top: 16px;
+    }
+
+    .tier-features li {
+      font-size: 0.85rem;
+      margin-bottom: 6px;
+      display: flex;
+      gap: 7px;
+    }
+
+    .tier-features li::before {
+      content: '✓';
+      color: var(--green-700);
+      font-weight: 700;
+      flex-shrink: 0;
+    }
+
+    /* ── Testimonials ──────────────────────────────────── */
+    .testimonials { background: var(--white); }
+
+    .testimonials-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 20px;
+      margin-top: 40px;
+    }
+
+    .testimonial-card {
+      background: var(--grey-100);
+      border-radius: var(--radius);
+      padding: 24px;
+    }
+
+    .testimonial-stars { color: #f59e0b; font-size: 0.9rem; margin-bottom: 10px; }
+
+    .testimonial-quote {
+      font-size: 0.92rem;
+      line-height: 1.65;
+      color: var(--grey-900);
+      margin-bottom: 16px;
+    }
+
+    .testimonial-author {
+      font-size: 0.82rem;
+      font-weight: 700;
+      color: var(--grey-600);
+    }
+
+    /* ── CTA Banner ────────────────────────────────────── */
+    .cta-banner {
+      background: var(--green-800);
+      color: var(--white);
+      text-align: center;
+      padding: 80px 20px;
+    }
+
+    .cta-banner h2 {
+      font-size: clamp(1.8rem, 4vw, 2.8rem);
+      font-weight: 900;
+      letter-spacing: -1px;
+      margin-bottom: 14px;
+    }
+
+    .cta-banner p {
+      font-size: 1.05rem;
+      color: rgba(255,255,255,.8);
+      margin-bottom: 32px;
+      max-width: 500px;
+      margin-left: auto;
+      margin-right: auto;
+    }
+
+    .cta-banner .btn-primary {
+      background: var(--white);
+      color: var(--green-800);
+    }
+
+    .cta-banner .btn-secondary {
+      border-color: rgba(255,255,255,.4);
+      color: var(--white);
+      background: transparent;
+    }
+
+    /* ── FAQ ───────────────────────────────────────────── */
+    .faq { background: var(--grey-100); }
+
+    .faq-list {
+      max-width: 720px;
+      margin: 40px auto 0;
+    }
+
+    details {
+      background: var(--white);
+      border-radius: 10px;
+      margin-bottom: 10px;
+      overflow: hidden;
+    }
+
+    summary {
+      padding: 18px 22px;
+      font-weight: 700;
+      font-size: 0.95rem;
+      cursor: pointer;
+      list-style: none;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    summary::-webkit-details-marker { display: none; }
+
+    summary::after {
+      content: '+';
+      font-size: 1.2rem;
+      font-weight: 300;
+      color: var(--grey-600);
+      transition: transform .2s;
+    }
+
+    details[open] summary::after {
+      transform: rotate(45deg);
+    }
+
+    .faq-answer {
+      padding: 0 22px 18px;
+      font-size: 0.9rem;
+      color: var(--grey-600);
+      line-height: 1.7;
+    }
+
+    /* ── Footer ────────────────────────────────────────── */
+    footer {
+      background: var(--grey-900);
+      color: rgba(255,255,255,.6);
+      padding: 48px 20px;
+      font-size: 0.85rem;
+    }
+
+    .footer-inner {
+      max-width: var(--max);
+      margin: 0 auto;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 32px;
+      justify-content: space-between;
+    }
+
+    .footer-brand .brand {
+      font-size: 1.1rem;
+      font-weight: 800;
+      color: var(--white);
+      margin-bottom: 6px;
+    }
+
+    .footer-col h4 {
+      font-size: 0.78rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: .07em;
+      color: rgba(255,255,255,.5);
+      margin-bottom: 12px;
+    }
+
+    .footer-col a {
+      display: block;
+      color: rgba(255,255,255,.6);
+      text-decoration: none;
+      margin-bottom: 8px;
+      transition: color .15s;
+    }
+
+    .footer-col a:hover { color: var(--white); }
+
+    .footer-bottom {
+      max-width: var(--max);
+      margin: 32px auto 0;
+      padding-top: 24px;
+      border-top: 1px solid rgba(255,255,255,.08);
+      display: flex;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 8px;
+      font-size: 0.78rem;
+    }
+  </style>
+</head>
+<body>
+
+<!-- ── Nav ───────────────────────────────────────────────────────────────── -->
+<nav>
+  <div class="nav-inner">
+    <a href="/" class="nav-logo">🌱 Sow Now</a>
+    <ul class="nav-links">
+      <li><a href="#how-it-works">How it works</a></li>
+      <li><a href="#science">The science</a></li>
+      <li><a href="#kits">Kits</a></li>
+      <li><a href="#faq">FAQ</a></li>
+      <li><a href="https://app.sow-now.uk" class="nav-cta">Sign in</a></li>
+    </ul>
+  </div>
+</nav>
+
+<!-- ── Hero ──────────────────────────────────────────────────────────────── -->
+<section class="hero">
+  <div class="container">
+    <div class="hero-badge">🌡 Science used by professional growers — now for your garden</div>
+    <h1>Stop guessing.<br><em>Start growing by the numbers.</em></h1>
+    <p>Sow Now uses your garden's own sensors and Growing Degree Day science to tell you exactly when to plant, water, and harvest — every morning, on your phone.</p>
+    <div class="hero-buttons">
+      <a href="#kits" class="btn btn-primary btn-lg">See the kits →</a>
+      <a href="#how-it-works" class="btn btn-secondary btn-lg" style="color:white;background:rgba(255,255,255,.15);border:1.5px solid rgba(255,255,255,.3)">How it works</a>
+    </div>
+    <p class="hero-proof">From £99 one-off · £4.99/month · No gateway required · Works with Ecowitt WS69</p>
+
+    <!-- Phone mockup -->
+    <div class="hero-mockup">
+      <div class="mockup-frame">
+        <div class="mockup-screen">
+          <div class="mockup-bar"></div>
+          <div class="mockup-header">
+            <div class="mockup-title">Today</div>
+            <div class="mockup-sub">Thursday, 15 May · Hub online ●</div>
+          </div>
+          <div class="mockup-body">
+            <div class="mockup-gdd">
+              <div class="mockup-gdd-card">
+                <div class="mockup-gdd-num">312</div>
+                <div class="mockup-gdd-label">Garden GDD</div>
+              </div>
+              <div class="mockup-gdd-card">
+                <div class="mockup-gdd-num">396</div>
+                <div class="mockup-gdd-label">Greenhouse GDD</div>
+              </div>
+            </div>
+            <div class="mockup-advice">
+              <div class="mockup-advice-title">💡 3 things for today</div>
+              <div class="mockup-advice-item">
+                <span class="mockup-advice-num">1.</span>
+                <span class="mockup-advice-text">Harden off tomatoes — move outside 2hrs this afternoon. Temp is 17°C.</span>
+              </div>
+              <div class="mockup-advice-item">
+                <span class="mockup-advice-num">2.</span>
+                <span class="mockup-advice-text">Water Bed 2 (courgettes) — soil moisture at 28%, below threshold.</span>
+              </div>
+              <div class="mockup-advice-item">
+                <span class="mockup-advice-num">3.</span>
+                <span class="mockup-advice-text">Sow French beans Saturday — soil temp hits 15°C threshold Thursday.</span>
+              </div>
+            </div>
+            <div class="mockup-card">
+              <div class="mockup-card-title">🌡 Right now · 14.3°C · Humidity 71%</div>
+              <div class="mockup-card-body">💧 Bed 1: 52% · Bed 2: 28% ⚠ · Bed 3: 47%</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ── How it works ───────────────────────────────────────────────────────── -->
+<section class="how" id="how-it-works">
+  <div class="container">
+    <div class="section-label">Simple setup</div>
+    <h2 class="section-title">Garden to phone in 5 minutes</h2>
+    <p class="section-body">No command lines, no config files. Your kit ships pre-provisioned. The app walks you through everything.</p>
+    <div class="steps">
+      <div class="step-card">
+        <div class="step-num">1</div>
+        <h3>Box arrives</h3>
+        <p>Hub, sensors, and a single QR card. Everything is pre-configured at packing time — no setup required.</p>
+      </div>
+      <div class="step-card">
+        <div class="step-num">2</div>
+        <h3>Download the app</h3>
+        <p>Scan the QR code. The app links your hub to your account and connects to your home Wi-Fi automatically.</p>
+      </div>
+      <div class="step-card">
+        <div class="step-num">3</div>
+        <h3>Place your sensors</h3>
+        <p>Push soil probes into your beds, clip the greenhouse sensor to a frame. Fully wireless — batteries last 12+ months.</p>
+      </div>
+      <div class="step-card">
+        <div class="step-num">4</div>
+        <h3>Next morning: advice</h3>
+        <p>At 7am you get a notification. Three specific things to do today, based on your actual garden's data.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ── Features ───────────────────────────────────────────────────────────── -->
+<section id="features">
+  <div class="container">
+    <div class="section-label">What you get</div>
+    <h2 class="section-title">Everything big farms use.<br>Sized for your garden.</h2>
+    <div class="features-grid">
+      <div class="feature-card">
+        <div class="feature-icon">🌡</div>
+        <h3>Your weather, not a postcode guess</h3>
+        <p>We read your Ecowitt WS69 weather station directly via radio — the same temperature your plants actually experience, not an average from 10 miles away.</p>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon">💧</div>
+        <h3>Per-bed soil moisture</h3>
+        <p>Capacitive sensors in each bed tell you exactly which one needs watering — not a general garden average. No wasted water, no stressed plants.</p>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon">🏡</div>
+        <h3>Greenhouse tracked separately</h3>
+        <p>Your greenhouse can be running 80+ GDD ahead of the garden. Sow Now tracks both zones independently so you know when seedlings are truly ready to move out.</p>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon">📅</div>
+        <h3>Harvest date predictions</h3>
+        <p>Based on accumulated GDD and your crop's target, we tell you when to expect your first harvest — updated daily as conditions change.</p>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon">❄️</div>
+        <h3>Frost risk alerts</h3>
+        <p>When your sensor reads below 2°C, you get an alert before it happens — not after. Enough time to cover vulnerable plants.</p>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon">📡</div>
+        <h3>Works without a gateway</h3>
+        <p>The Sow Now hub decodes your Ecowitt station directly using a built-in radio receiver — no Ecowitt gateway, no Ecowitt cloud dependency.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ── Science ─────────────────────────────────────────────────────────────── -->
+<section class="science" id="science">
+  <div class="container">
+    <div class="science-split">
+      <div>
+        <div class="section-label">The science</div>
+        <h2 class="section-title">Growing Degree Days — what farms have used for decades</h2>
+        <p class="section-body">Professional growers have used GDD to predict crop development since the 1950s. It's the accumulated heat energy above a crop's base temperature — a far more accurate predictor of plant development than a calendar date.</p>
+        <p style="font-size:.9rem;color:var(--grey-600);line-height:1.7;">The difference is that Sow Now uses <strong>your actual sensor readings</strong> — not a weather forecast API. Your south-facing greenhouse wall might be accumulating GDD twice as fast as your garden. No weather service can tell you that.</p>
+      </div>
+      <div class="gdd-formula">
+        <div class="formula-title">GDD Formula (standard agricultural method)</div>
+        <div class="formula">
+          <strong>Daily GDD</strong> = max(<br>
+          &nbsp;&nbsp;((T_max + T_min) ÷ 2) − T_base,<br>
+          &nbsp;&nbsp;0<br>
+          )<br><br>
+          <strong>Season GDD</strong> = Σ daily GDD<br>
+          &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;from sow date
+        </div>
+        <table class="gdd-table">
+          <tr><th>Crop</th><th>Base temp</th><th>GDD to harvest</th></tr>
+          <tr><td>Tomato</td><td>10°C</td><td>1,000–1,400</td></tr>
+          <tr><td>French bean</td><td>10°C</td><td>800–1,000</td></tr>
+          <tr><td>Sweetcorn</td><td>10°C</td><td>1,400–1,600</td></tr>
+          <tr><td>Pea</td><td>4°C</td><td>1,000–1,200</td></tr>
+          <tr><td>Carrot</td><td>7°C</td><td>1,200–1,500</td></tr>
+        </table>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ── Kits ────────────────────────────────────────────────────────────────── -->
+<section class="kits" id="kits">
+  <div class="container">
+    <div class="section-label">Hardware kits</div>
+    <h2 class="section-title">One-off purchase. Subscription unlocks the intelligence.</h2>
+    <p class="section-body">The kit is yours forever. The subscription pays for daily AI advice, push alerts, and unlimited crop tracking. Cancel anytime.</p>
+    <div class="kits-grid">
+      <div class="kit-card">
+        <div class="kit-header">
+          <div class="kit-name">Starter Kit</div>
+          <div class="kit-price"><sup>£</sup>99</div>
+        </div>
+        <div class="kit-body">
+          <div class="kit-includes">What's in the box</div>
+          <ul class="kit-items">
+            <li>Pre-provisioned Sow Now Hub</li>
+            <li>RTL-SDR 433 MHz receiver (built-in)</li>
+            <li>LoRa HAT for sensor nodes (built-in)</li>
+            <li>2 × soil moisture sensor nodes</li>
+            <li>1 × greenhouse temperature node</li>
+            <li>USB-C power cable</li>
+            <li>QR setup card</li>
+          </ul>
+          <a href="https://app.sow-now.uk" class="btn btn-secondary" style="width:100%;display:flex">Order now</a>
+          <div class="kit-sub-note">Subscription from £4.99/month after 3-month free trial</div>
+        </div>
+      </div>
+
+      <div class="kit-card featured">
+        <div class="kit-header">
+          <div class="kit-popular">Most popular</div>
+          <div class="kit-name" style="color:white">Full Garden Kit</div>
+          <div class="kit-price"><sup>£</sup>129</div>
+        </div>
+        <div class="kit-body">
+          <div class="kit-includes">What's in the box</div>
+          <ul class="kit-items">
+            <li>Everything in Starter Kit</li>
+            <li>4 × soil moisture sensor nodes</li>
+            <li>Covers up to 4 separate beds</li>
+            <li>Ideal for allotment plots</li>
+            <li>Additional nodes available (£18 each)</li>
+          </ul>
+          <a href="https://app.sow-now.uk" class="btn btn-primary" style="width:100%;display:flex">Order now →</a>
+          <div class="kit-sub-note">Subscription from £4.99/month after 3-month free trial</div>
+        </div>
+      </div>
+
+      <div class="kit-card">
+        <div class="kit-header">
+          <div class="kit-name">Already have WS69?</div>
+          <div class="kit-price"><sup>£</sup>0</div>
+        </div>
+        <div class="kit-body">
+          <div class="kit-includes">Try before you buy</div>
+          <ul class="kit-items">
+            <li>Download the app free</li>
+            <li>Connect your existing WS69</li>
+            <li>See live GDD data immediately</li>
+            <li>Upgrade to full kit anytime</li>
+            <li>Seed tier: basic data, weekly advice</li>
+          </ul>
+          <a href="https://app.sow-now.uk" class="btn btn-secondary" style="width:100%;display:flex">Try free →</a>
+          <div class="kit-sub-note">No credit card required for free tier</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ── Subscriptions ──────────────────────────────────────────────────────── -->
+<section class="subs" id="subscriptions">
+  <div class="container">
+    <div class="section-label">Subscriptions</div>
+    <h2 class="section-title">The app that earns its keep</h2>
+    <p class="section-body">One missed sowing window or a wasted tray of seedlings costs more than a year's subscription. Sow Now pays for itself.</p>
+    <div class="tiers-grid">
+      <div class="tier-card">
+        <div class="tier-name">Seed</div>
+        <div class="tier-price">Free</div>
+        <div class="tier-period">forever</div>
+        <ul class="tier-features">
+          <li>Live sensor data</li>
+          <li>Basic GDD counter</li>
+          <li>3 crop profiles</li>
+          <li>Weekly advice digest</li>
+        </ul>
+      </div>
+      <div class="tier-card featured">
+        <div class="tier-name">Grower ⭐ Most popular</div>
+        <div class="tier-price">£4.99</div>
+        <div class="tier-period">per month · 3 months free with kit</div>
+        <ul class="tier-features">
+          <li>Daily AI advice (3 things today)</li>
+          <li>Push + email alerts</li>
+          <li>Unlimited crop profiles</li>
+          <li>Greenhouse vs garden GDD</li>
+          <li>Harvest date predictions</li>
+          <li>Succession sowing planner</li>
+          <li>3 years history</li>
+        </ul>
+      </div>
+      <div class="tier-card">
+        <div class="tier-name">Smallholder</div>
+        <div class="tier-price">£12.99</div>
+        <div class="tier-period">per month</div>
+        <ul class="tier-features">
+          <li>Up to 3 sites / hubs</li>
+          <li>All Grower features</li>
+          <li>Full season PDF reports</li>
+          <li>Open API access</li>
+          <li>Priority support</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ── Testimonials ───────────────────────────────────────────────────────── -->
+<section class="testimonials">
+  <div class="container">
+    <div class="section-label">Early growers</div>
+    <h2 class="section-title">What beta users say</h2>
+    <div class="testimonials-grid">
+      <div class="testimonial-card">
+        <div class="testimonial-stars">★★★★★</div>
+        <p class="testimonial-quote">"I've been growing tomatoes for 20 years and always struggled to know when to move seedlings outside. This year Sow Now told me exactly when — and they were the best plants I've ever grown."</p>
+        <div class="testimonial-author">Sarah M. · Allotment holder, Bristol</div>
+      </div>
+      <div class="testimonial-card">
+        <div class="testimonial-stars">★★★★★</div>
+        <p class="testimonial-quote">"The soil moisture alerts alone are worth it. I used to overwater half my beds and underwater the other half. Now the app tells me which bed needs attention before I even go outside."</p>
+        <div class="testimonial-author">James T. · Kitchen garden, Yorkshire</div>
+      </div>
+      <div class="testimonial-card">
+        <div class="testimonial-stars">★★★★★</div>
+        <p class="testimonial-quote">"I already had the Ecowitt station. Setting up Sow Now took less than 10 minutes. The fact it doesn't use the Ecowitt app or cloud is a big deal for me — everything stays on my own system."</p>
+        <div class="testimonial-author">Pete W. · Raised bed grower, Suffolk</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ── CTA Banner ──────────────────────────────────────────────────────────── -->
+<section class="cta-banner">
+  <div class="container">
+    <h2>Your best growing season starts now.</h2>
+    <p>Order before May 31st and get 6 months Grower free instead of 3. Limited first batch.</p>
+    <div style="display:flex;gap:12px;justify-content:center;flex-wrap:wrap">
+      <a href="https://app.sow-now.uk" class="btn btn-primary btn-lg">Order Full Garden Kit — £129</a>
+      <a href="https://app.sow-now.uk" class="btn btn-secondary btn-lg" style="border-color:rgba(255,255,255,.3);color:white;background:transparent">Try free first</a>
+    </div>
+  </div>
+</section>
+
+<!-- ── FAQ ────────────────────────────────────────────────────────────────── -->
+<section class="faq" id="faq">
+  <div class="container">
+    <div style="text-align:center;margin-bottom:8px">
+      <div class="section-label" style="text-align:center">FAQ</div>
+      <h2 class="section-title">Common questions</h2>
+    </div>
+    <div class="faq-list">
+      <details>
+        <summary>Do I need to buy a separate Ecowitt gateway?</summary>
+        <div class="faq-answer">No — this is one of the key differences with Sow Now. The hub contains a built-in radio receiver that reads your Ecowitt WS69 directly on 433 MHz. You don't need the Ecowitt GW1000 gateway, and your data never goes through Ecowitt's servers.</div>
+      </details>
+      <details>
+        <summary>Does it work with other weather stations?</summary>
+        <div class="faq-answer">Currently optimised for the Ecowitt WS69 and the broader Fine Offset sensor family (WS68, WS80). Support for additional stations is on the roadmap. If you already own a compatible station, you can try the free tier immediately.</div>
+      </details>
+      <details>
+        <summary>What happens if my broadband goes down?</summary>
+        <div class="faq-answer">The Sow Now hub stores up to 30 days of sensor readings locally. When your connection returns, all readings are automatically uploaded — no data is lost. Your app will show "Hub last seen X hours ago" if the hub goes offline.</div>
+      </details>
+      <details>
+        <summary>How long do the sensor node batteries last?</summary>
+        <div class="faq-answer">The soil moisture and greenhouse nodes run on 2× AA batteries and transmit every 30 minutes. At this interval you can expect 12–18 months of battery life. The app notifies you when a node drops below 15%.</div>
+      </details>
+      <details>
+        <summary>How far can the sensors be from the hub?</summary>
+        <div class="faq-answer">The Ecowitt WS69 transmits on standard 433 MHz — effective range through walls is typically 50–100 m. The soil and greenhouse LoRa nodes have a much longer range — 100–300 m through walls and soil. Most garden installations are well within range with the hub on a windowsill.</div>
+      </details>
+      <details>
+        <summary>Is my data private?</summary>
+        <div class="faq-answer">Your sensor data is stored under your account only — no other user can see it. We store only your postcode prefix (e.g. "SW4") for climate zone lookup, never your full address. You can delete your account and all data instantly from the app. We do not sell data to third parties.</div>
+      </details>
+      <details>
+        <summary>Can I cancel my subscription?</summary>
+        <div class="faq-answer">Yes, anytime — no contract. If you cancel, your account reverts to the free Seed tier. Your historical data and crop records are retained for 12 months in case you resubscribe.</div>
+      </details>
+      <details>
+        <summary>What if the hub breaks?</summary>
+        <div class="faq-answer">Replacement hubs ship pre-provisioned. Scan the QR on the new hub, and all your settings, crop records, and historical data are restored from the cloud instantly. No re-setup needed.</div>
+      </details>
+    </div>
+  </div>
+</section>
+
+<!-- ── Footer ──────────────────────────────────────────────────────────────── -->
+<footer>
+  <div class="footer-inner">
+    <div class="footer-brand">
+      <div class="brand">🌱 Sow Now</div>
+      <p>Grow smarter, not harder.</p>
+    </div>
+    <div class="footer-col">
+      <h4>Product</h4>
+      <a href="#how-it-works">How it works</a>
+      <a href="#science">The science</a>
+      <a href="#kits">Hardware kits</a>
+      <a href="#subscriptions">Subscriptions</a>
+    </div>
+    <div class="footer-col">
+      <h4>Support</h4>
+      <a href="#faq">FAQ</a>
+      <a href="mailto:hello@sow-now.uk">Contact us</a>
+      <a href="https://app.sow-now.uk">Dashboard login</a>
+    </div>
+    <div class="footer-col">
+      <h4>Legal</h4>
+      <a href="/privacy">Privacy policy</a>
+      <a href="/terms">Terms of service</a>
+    </div>
+  </div>
+  <div class="footer-bottom">
+    <span>© 2025 Sow Now. All rights reserved.</span>
+    <span>sow-now.uk · Made in the UK 🇬🇧</span>
+  </div>
+</footer>
+
+</body>
+</html>
