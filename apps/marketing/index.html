@@ -824,6 +824,165 @@
       gap: 8px;
       font-size: 0.78rem;
     }
+    /* ── Sensor placement diagram ──────────────────────────── */
+    .placement { background: var(--white); }
+
+    .placement-layout {
+      display: grid;
+      grid-template-columns: 1.1fr 0.9fr;
+      gap: 56px;
+      align-items: start;
+      margin-top: 48px;
+    }
+
+    @media (max-width: 800px) {
+      .placement-layout { grid-template-columns: 1fr; gap: 32px; }
+    }
+
+    .placement-diagram {
+      background: var(--grey-100);
+      border-radius: var(--radius);
+      padding: 24px;
+    }
+
+    .placement-list { list-style: none; }
+
+    .placement-item {
+      display: flex;
+      gap: 14px;
+      align-items: flex-start;
+      padding: 14px 0;
+      border-bottom: 1px solid var(--grey-200);
+    }
+
+    .placement-item:last-child { border-bottom: none; }
+
+    .placement-item-icon {
+      font-size: 1.5rem;
+      flex-shrink: 0;
+      width: 36px;
+      text-align: center;
+      margin-top: 2px;
+    }
+
+    .placement-item h3 {
+      font-size: 0.95rem;
+      font-weight: 700;
+      margin-bottom: 3px;
+    }
+
+    .placement-item p {
+      font-size: 0.85rem;
+      color: var(--grey-600);
+      line-height: 1.55;
+    }
+
+    .placement-item .placement-tag {
+      display: inline-block;
+      font-size: 0.68rem;
+      font-weight: 700;
+      padding: 1px 7px;
+      border-radius: 6px;
+      margin-top: 4px;
+    }
+
+    .tag-outdoor    { background: #dcfce7; color: #166534; }
+    .tag-greenhouse { background: #fef9c3; color: #854d0e; }
+    .tag-indoor     { background: #e0f2fe; color: #0369a1; }
+    .tag-soil       { background: #fce7f3; color: #9d174d; }
+
+    /* ── GDD explainer ──────────────────────────────────────── */
+    .gdd-explain { background: var(--grey-100); }
+
+    .gdd-explain-intro {
+      max-width: 640px;
+      font-size: 1.05rem;
+      color: var(--grey-600);
+      line-height: 1.7;
+      margin-bottom: 40px;
+    }
+
+    .gdd-region-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 16px;
+      margin-bottom: 40px;
+    }
+
+    .gdd-region-card {
+      background: var(--white);
+      border-radius: var(--radius);
+      padding: 20px;
+      border: 1.5px solid var(--grey-200);
+    }
+
+    .gdd-region-card h3 {
+      font-size: 0.88rem;
+      font-weight: 800;
+      color: var(--grey-900);
+      margin-bottom: 2px;
+    }
+
+    .gdd-region-card .region-sub {
+      font-size: 0.72rem;
+      color: #9ca3af;
+      margin-bottom: 12px;
+    }
+
+    .gdd-region-bar-track {
+      background: #e5e7eb;
+      border-radius: 4px;
+      height: 10px;
+      margin-bottom: 6px;
+      overflow: hidden;
+    }
+
+    .gdd-region-bar-fill {
+      height: 100%;
+      border-radius: 4px;
+      background: var(--green-700);
+    }
+
+    .gdd-region-num {
+      font-size: 1.4rem;
+      font-weight: 900;
+      color: var(--green-800);
+      letter-spacing: -0.5px;
+      line-height: 1;
+    }
+
+    .gdd-region-label {
+      font-size: 0.7rem;
+      color: #9ca3af;
+      margin-top: 2px;
+    }
+
+    .gdd-impact-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+      gap: 16px;
+      margin-top: 8px;
+    }
+
+    .gdd-impact-card {
+      background: var(--white);
+      border-radius: var(--radius);
+      padding: 20px 22px;
+      border-left: 4px solid var(--green-700);
+    }
+
+    .gdd-impact-card h4 {
+      font-size: 0.88rem;
+      font-weight: 700;
+      margin-bottom: 6px;
+    }
+
+    .gdd-impact-card p {
+      font-size: 0.82rem;
+      color: var(--grey-600);
+      line-height: 1.6;
+    }
+
     /* ── Season diary / app preview ────────────────────────── */
     .diary { background: var(--grey-100); }
 
@@ -1189,6 +1348,146 @@
   </div>
 </section>
 
+<!-- ── Sensor placement diagram ───────────────────────────────────────────── -->
+<section class="placement" id="sensors">
+  <div class="container">
+    <div class="section-label">The hardware</div>
+    <h2 class="section-title">Four sensors. Everything covered.</h2>
+    <p class="section-body">Each sensor has one job and one place. Here's where everything goes and what it tells you.</p>
+
+    <div class="placement-layout">
+
+      <!-- SVG garden diagram -->
+      <div class="placement-diagram">
+        <svg viewBox="0 0 460 360" xmlns="http://www.w3.org/2000/svg" style="width:100%;height:auto;display:block">
+
+          <!-- Sky / background -->
+          <rect width="460" height="360" fill="#f0fdf4" rx="10"/>
+
+          <!-- Ground -->
+          <rect x="0" y="240" width="460" height="120" fill="#d9f0d3" rx="0"/>
+          <rect x="0" y="238" width="460" height="8" fill="#a3d9a5" rx="0"/>
+
+          <!-- House (back right) -->
+          <rect x="310" y="80" width="130" height="160" fill="#e5e7eb" rx="4"/>
+          <polygon points="310,80 375,30 440,80" fill="#d1d5db"/>
+          <rect x="355" y="140" width="40" height="50" fill="#9ca3af" rx="2"/>
+          <rect x="320" y="100" width="35" height="30" fill="#bfdbfe" rx="2"/>
+
+          <!-- Greenhouse (mid left) -->
+          <rect x="20" y="140" width="100" height="100" fill="none" stroke="#86efac" stroke-width="2.5" rx="3"/>
+          <polygon points="20,140 70,105 120,140" fill="none" stroke="#86efac" stroke-width="2.5"/>
+          <!-- Greenhouse internal lines -->
+          <line x1="45" y1="140" x2="45" y2="240" stroke="#86efac" stroke-width="1" opacity="0.5"/>
+          <line x1="70" y1="140" x2="70" y2="240" stroke="#86efac" stroke-width="1" opacity="0.5"/>
+          <line x1="95" y1="140" x2="95" y2="240" stroke="#86efac" stroke-width="1" opacity="0.5"/>
+          <!-- Greenhouse label -->
+          <text x="70" y="260" text-anchor="middle" font-size="9" fill="#166534" font-weight="600">Greenhouse</text>
+
+          <!-- Raised bed 1 -->
+          <rect x="150" y="255" width="90" height="40" fill="#a3d9a5" rx="4" stroke="#166534" stroke-width="1.5"/>
+          <text x="195" y="280" text-anchor="middle" font-size="9" fill="#14532d" font-weight="700">Bed 1</text>
+
+          <!-- Raised bed 2 -->
+          <rect x="255" y="255" width="90" height="40" fill="#a3d9a5" rx="4" stroke="#166534" stroke-width="1.5"/>
+          <text x="300" y="280" text-anchor="middle" font-size="9" fill="#14532d" font-weight="700">Bed 2</text>
+
+          <!-- Hub (windowsill inside house) -->
+          <rect x="318" y="132" width="30" height="14" fill="#166534" rx="3"/>
+          <text x="333" y="142" text-anchor="middle" font-size="7" fill="white" font-weight="700">HUB</text>
+          <!-- Radio waves from hub -->
+          <path d="M350,139 Q360,125 370,139" fill="none" stroke="#166534" stroke-width="1.5" opacity="0.6"/>
+          <path d="M350,139 Q365,118 380,139" fill="none" stroke="#166534" stroke-width="1.5" opacity="0.35"/>
+          <path d="M350,139 Q370,110 390,139" fill="none" stroke="#166534" stroke-width="1.5" opacity="0.15"/>
+
+          <!-- WS69 weather station (outside, on pole) -->
+          <line x1="230" y1="240" x2="230" y2="185" stroke="#57606a" stroke-width="2"/>
+          <circle cx="230" cy="178" r="12" fill="#fef9c3" stroke="#d97706" stroke-width="1.5"/>
+          <text x="230" y="182" text-anchor="middle" font-size="8" fill="#92400e" font-weight="700">WS</text>
+          <text x="230" y="200" text-anchor="middle" font-size="8" fill="#57606a">WS69</text>
+
+          <!-- WH51 soil sensor bed 1 -->
+          <rect x="168" y="248" width="18" height="22" fill="#fce7f3" stroke="#9d174d" stroke-width="1.5" rx="2"/>
+          <line x1="177" y1="270" x2="177" y2="282" stroke="#9d174d" stroke-width="1.5"/>
+          <text x="177" y="248" text-anchor="middle" font-size="7" fill="#9d174d" font-weight="700">WH51</text>
+
+          <!-- WH51 soil sensor bed 2 -->
+          <rect x="273" y="248" width="18" height="22" fill="#fce7f3" stroke="#9d174d" stroke-width="1.5" rx="2"/>
+          <line x1="282" y1="270" x2="282" y2="282" stroke="#9d174d" stroke-width="1.5"/>
+          <text x="282" y="248" text-anchor="middle" font-size="7" fill="#9d174d" font-weight="700">WH51</text>
+
+          <!-- WH31 greenhouse sensor -->
+          <rect x="55" y="185" width="20" height="14" fill="#fef9c3" stroke="#d97706" stroke-width="1.5" rx="2"/>
+          <text x="65" y="195" text-anchor="middle" font-size="7" fill="#92400e" font-weight="700">WH31</text>
+
+          <!-- WH31 indoor sensor (windowsill) -->
+          <rect x="318" y="107" width="20" height="13" fill="#e0f2fe" stroke="#0369a1" stroke-width="1.5" rx="2"/>
+          <text x="328" y="117" text-anchor="middle" font-size="7" fill="#0369a1" font-weight="700">WH31</text>
+
+          <!-- 868MHz labels -->
+          <text x="155" y="210" font-size="8" fill="#9ca3af" font-style="italic">868 MHz</text>
+          <text x="155" y="220" font-size="8" fill="#9ca3af" font-style="italic">wireless</text>
+
+          <!-- Legend -->
+          <rect x="10" y="10" width="10" height="10" fill="#166534" rx="2"/>
+          <text x="24" y="19" font-size="8" fill="#57606a">Sow Now Hub</text>
+          <rect x="90" y="10" width="10" height="10" fill="#fef9c3" stroke="#d97706" stroke-width="1" rx="2"/>
+          <text x="104" y="19" font-size="8" fill="#57606a">WS69 weather station</text>
+          <rect x="220" y="10" width="10" height="10" fill="#fce7f3" stroke="#9d174d" stroke-width="1" rx="2"/>
+          <text x="234" y="19" font-size="8" fill="#57606a">WH51 soil sensor</text>
+          <rect x="320" y="10" width="10" height="10" fill="#fef9c3" stroke="#d97706" stroke-width="1" rx="2"/>
+          <text x="334" y="19" font-size="8" fill="#57606a">WH31 temp/humidity</text>
+        </svg>
+      </div>
+
+      <!-- Sensor list -->
+      <ul class="placement-list">
+        <li class="placement-item">
+          <div class="placement-item-icon">🌤</div>
+          <div>
+            <h3>Ecowitt WS69 — outdoor weather station</h3>
+            <p>Mount outside on a post or fence, clear of walls and overhangs. Reads air temperature, humidity, wind speed, rain, and UV. This drives your garden GDD calculation.</p>
+            <span class="placement-tag tag-outdoor">Garden zone</span>
+          </div>
+        </li>
+        <li class="placement-item">
+          <div class="placement-item-icon">💧</div>
+          <div>
+            <h3>Ecowitt WH51 — soil moisture sensor</h3>
+            <p>Push the probe 8–10 cm into the soil of each bed. Reads soil moisture and temperature. One per bed — the app tells you which specific bed needs watering.</p>
+            <span class="placement-tag tag-soil">Per bed</span>
+          </div>
+        </li>
+        <li class="placement-item">
+          <div class="placement-item-icon">🏡</div>
+          <div>
+            <h3>Ecowitt WH31 ch.1 — greenhouse</h3>
+            <p>Hang inside your greenhouse, out of direct sunlight. Reads air temperature and humidity. Tracks greenhouse GDD separately — your greenhouse is often 3–6 weeks ahead of the garden.</p>
+            <span class="placement-tag tag-greenhouse">Greenhouse zone</span>
+          </div>
+        </li>
+        <li class="placement-item">
+          <div class="placement-item-icon">🪴</div>
+          <div>
+            <h3>Ecowitt WH31 ch.2 — indoors (optional)</h3>
+            <p>The WH31 supports multiple channels. A second channel on a south-facing windowsill or propagator shelf tracks your seedlings' actual environment — warmer and different from the greenhouse.</p>
+            <span class="placement-tag tag-indoor">Indoor zone</span>
+          </div>
+        </li>
+        <li class="placement-item">
+          <div class="placement-item-icon">📡</div>
+          <div>
+            <h3>Sow Now Hub — on a windowsill</h3>
+            <p>Place on any windowsill facing the garden, plugged into USB-C. The built-in radio receives all sensors simultaneously at 868 MHz — no wires, no gateway, up to 60 m range.</p>
+            <span class="placement-tag tag-outdoor">Receives all zones</span>
+          </div>
+        </li>
+      </ul>
+
+    </div>
+  </div>
+</section>
+
 <!-- ── Season diary / app preview ─────────────────────────────────────────── -->
 <section class="diary" id="in-action">
   <div class="container">
@@ -1327,6 +1626,112 @@
       </ul>
 
     </div>
+  </div>
+</section>
+
+<!-- ── GDD explainer ───────────────────────────────────────────────────────── -->
+<section class="gdd-explain" id="gdd">
+  <div class="container">
+    <div class="section-label">Why GDD matters</div>
+    <h2 class="section-title">Plants don't care what month it is.<br>They care how warm it's been.</h2>
+
+    <p class="gdd-explain-intro">
+      A tomato sown on 1st March doesn't know it's March. It knows how many warm hours it's experienced. That's what Growing Degree Days measure — accumulated warmth above the temperature at which a plant starts growing. Two gardens 400 miles apart can have completely different growing seasons, even if they plant on the same date.
+    </p>
+
+    <!-- Regional comparison -->
+    <div style="font-size:0.78rem;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:var(--grey-600);margin-bottom:14px">
+      Estimated season GDD (base 10°C) by region — 2025 growing season (Apr–Sep)
+    </div>
+    <div class="gdd-region-grid">
+
+      <div class="gdd-region-card">
+        <h3>Surrey / London</h3>
+        <div class="region-sub">South East England</div>
+        <div class="gdd-region-bar-track">
+          <div class="gdd-region-bar-fill" style="width:100%"></div>
+        </div>
+        <div class="gdd-region-num">1,380</div>
+        <div class="gdd-region-label">GDD Apr–Sep 2025</div>
+      </div>
+
+      <div class="gdd-region-card">
+        <h3>Bristol / Somerset</h3>
+        <div class="region-sub">South West England</div>
+        <div class="gdd-region-bar-track">
+          <div class="gdd-region-bar-fill" style="width:90%"></div>
+        </div>
+        <div class="gdd-region-num">1,240</div>
+        <div class="gdd-region-label">GDD Apr–Sep 2025</div>
+      </div>
+
+      <div class="gdd-region-card">
+        <h3>Birmingham</h3>
+        <div class="region-sub">Midlands</div>
+        <div class="gdd-region-bar-track">
+          <div class="gdd-region-bar-fill" style="width:80%"></div>
+        </div>
+        <div class="gdd-region-num">1,100</div>
+        <div class="gdd-region-label">GDD Apr–Sep 2025</div>
+      </div>
+
+      <div class="gdd-region-card">
+        <h3>Cumbria / Lakes</h3>
+        <div class="region-sub">North West England</div>
+        <div class="gdd-region-bar-track">
+          <div class="gdd-region-bar-fill" style="width:66%"></div>
+        </div>
+        <div class="gdd-region-num">910</div>
+        <div class="gdd-region-label">GDD Apr–Sep 2025</div>
+      </div>
+
+      <div class="gdd-region-card">
+        <h3>Aberdeen</h3>
+        <div class="region-sub">North East Scotland</div>
+        <div class="gdd-region-bar-track">
+          <div class="gdd-region-bar-fill" style="width:52%"></div>
+        </div>
+        <div class="gdd-region-num">720</div>
+        <div class="gdd-region-label">GDD Apr–Sep 2025</div>
+      </div>
+
+    </div>
+
+    <!-- What this means in practice -->
+    <div style="font-size:0.78rem;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:var(--grey-600);margin-bottom:14px">
+      What this means for your tomatoes (Gardener's Delight, base 10°C, target 1,200 GDD)
+    </div>
+    <div class="gdd-impact-grid">
+
+      <div class="gdd-impact-card">
+        <h4>Surrey grower — comfortable harvest</h4>
+        <p>At 1,380 GDD for the season, a Surrey garden comfortably hits the 1,200 GDD target by mid-August. Sow indoors in March, transplant in May, pick from late July.</p>
+      </div>
+
+      <div class="gdd-impact-card">
+        <h4>Cumbria grower — tight but possible</h4>
+        <p>At 910 GDD outdoors, hitting 1,200 GDD in the garden alone is borderline. But a greenhouse in Cumbria might add 300+ GDD. Sow Now tells you exactly when your greenhouse has reached the threshold — not a calendar guess.</p>
+      </div>
+
+      <div class="gdd-impact-card">
+        <h4>Aberdeen grower — greenhouse essential</h4>
+        <p>720 GDD outdoors won't ripen most tomatoes. But a decent south-facing greenhouse in Aberdeen can accumulate 1,100–1,300 GDD. Sow Now tracks your actual greenhouse, not an average — and adjusts the harvest prediction as the season unfolds.</p>
+      </div>
+
+      <div class="gdd-impact-card">
+        <h4>The postcode forecast problem</h4>
+        <p>Even in the same postcode, a south-facing walled garden can accumulate 200+ more GDD than a north-facing plot. The only way to know is to measure. That's what the WS69 is for.</p>
+      </div>
+
+    </div>
+
+    <div style="margin-top:32px;padding:20px 24px;background:var(--white);border-radius:var(--radius);border-left:4px solid var(--green-700);max-width:680px">
+      <p style="font-size:0.9rem;color:var(--grey-600);line-height:1.7;margin:0">
+        <strong style="color:var(--grey-900)">These are regional estimates, not your garden.</strong>
+        The whole point of Sow Now is that your sensors measure <em>your</em> microclimate — the south-facing wall, the sheltered raised bed, the greenhouse that traps heat differently to your neighbour's. Regional averages are where you start. Your sensors are where you finish.
+      </p>
+    </div>
+
   </div>
 </section>
 
