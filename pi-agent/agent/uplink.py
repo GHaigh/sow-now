@@ -16,7 +16,7 @@ import httpx
 from agent.buffer import ReadingBuffer
 from agent.config import Config
 
-log = logging.getLogger("vernal.uplink")
+log = logging.getLogger("sow-now.uplink")
 
 MAX_BACKOFF_S  = 900   # 15 minutes max backoff on repeated failure
 BATCH_SIZE     = 200   # Max readings per POST
@@ -74,7 +74,7 @@ class Uplink:
             log.info("Uploaded %d readings successfully", len(ids))
         elif response.status_code == 401:
             # JWT expired — log clearly so the OTA update can rotate token
-            log.error("Device JWT rejected (401) — token may be expired. Check /etc/vernal/config.json")
+            log.error("Device JWT rejected (401) — token may be expired. Check /etc/sow-now/config.json")
             raise RuntimeError("Device JWT rejected")
         else:
             raise RuntimeError(f"Ingest API returned HTTP {response.status_code}: {response.text[:200]}")

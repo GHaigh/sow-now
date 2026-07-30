@@ -19,7 +19,7 @@ import time
 from agent.buffer import ReadingBuffer
 from agent.config import Config
 
-log = logging.getLogger("vernal.rtl433")
+log = logging.getLogger("sow-now.rtl433")
 
 # rtl_433 device ID for Fineoffset-WS68 / WS69 family
 FINEOFFSET_PROTOCOL = 119

@@ -8,7 +8,7 @@
 # What this does:
 #   1. Updates system packages
 #   2. Installs rtl_433, Python 3.11, required system libs
-#   3. Creates the vernal user and directories
+#   3. Creates the sownow user and directories
 #   4. Installs Python dependencies into a venv
 #   5. Copies systemd service files
 #   6. Enables SPI interface
@@ -17,9 +17,9 @@
 #   9. Enables automatic security updates
 #
 # After running this script:
-#   - Copy /etc/vernal/config.json.example to /etc/vernal/config.json
+#   - Copy /etc/sow-now/config.json.example to /etc/sow-now/config.json
 #   - Fill in device_id and device_jwt (from provisioning QR scan)
-#   - sudo systemctl enable --now vernal-agent
+#   - sudo systemctl enable --now sow-now-agent
 
 set -euo pipefail
 
@@ -42,21 +42,21 @@ apt-get install -y -qq \
     unattended-upgrades \
     apt-listchanges
 
-# ── 3. Create vernal user and directories ────────────────────────────────────
-if ! id -u vernal &>/dev/null; then
-    useradd -r -s /usr/sbin/nologin -d /var/lib/vernal vernal
+# ── 3. Create sownow user and directories ────────────────────────────────────
+if ! id -u sownow &>/dev/null; then
+    useradd -r -s /usr/sbin/nologin -d /var/lib/sow-now sownow
 fi
 
-mkdir -p /var/lib/vernal      # SQLite buffer lives here
-mkdir -p /etc/vernal          # Config + node keys live here
-chown -R vernal:vernal /var/lib/vernal /etc/vernal
-chmod 700 /etc/vernal         # Secrets directory — owner only
+mkdir -p /var/lib/sow-now      # SQLite buffer lives here
+mkdir -p /etc/sow-now          # Config + node keys live here
+chown -R sownow:sownow /var/lib/sow-now /etc/sow-now
+chmod 700 /etc/sow-now         # Secrets directory — owner only
 
-# Add vernal user to plugdev group for RTL-SDR USB access
-usermod -aG plugdev vernal
+# Add sownow user to plugdev group for RTL-SDR USB access
+usermod -aG plugdev sownow
 
 # ── 4. Install Python agent ──────────────────────────────────────────────────
-AGENT_DIR="/opt/vernal-agent"
+AGENT_DIR="/opt/sow-now-agent"
 mkdir -p "$AGENT_DIR"
 
 # Copy agent source (expected to be present alongside this script)
@@ -69,12 +69,12 @@ python3.11 -m venv "$AGENT_DIR/venv"
 "$AGENT_DIR/venv/bin/pip" install --quiet --upgrade pip
 "$AGENT_DIR/venv/bin/pip" install --quiet -r "$AGENT_DIR/requirements.txt"
 
-chown -R vernal:vernal "$AGENT_DIR"
+chown -R sownow:sownow "$AGENT_DIR"
 
 # ── 5. Install systemd service ───────────────────────────────────────────────
-cp "$SCRIPT_DIR/vernal-agent.service" /etc/systemd/system/
+cp "$SCRIPT_DIR/sow-now-agent.service" /etc/systemd/system/
 systemctl daemon-reload
-systemctl enable vernal-agent
+systemctl enable sow-now-agent
 
 # ── 6. Enable SPI (for LoRa HAT) ────────────────────────────────────────────
 if ! grep -q "^dtparam=spi=on" /boot/firmware/config.txt 2>/dev/null; then
@@ -96,22 +96,22 @@ ufw allow out 53/udp  comment "DNS"
 ufw --force enable
 
 # ── 9. Automatic security updates ────────────────────────────────────────────
-cat > /etc/apt/apt.conf.d/50unattended-upgrades-vernal << 'EOF'
+cat > /etc/apt/apt.conf.d/50unattended-upgrades-sownow << 'EOF'
 Unattended-Upgrade::Automatic-Reboot "false";
 Unattended-Upgrade::Automatic-Reboot-Time "03:00";
 EOF
 
 # Copy example config
-cp "$SCRIPT_DIR/config.example.json" /etc/vernal/config.json.example
-chmod 600 /etc/vernal/config.json.example
+cp "$SCRIPT_DIR/config.example.json" /etc/sow-now/config.json.example
+chmod 600 /etc/sow-now/config.json.example
 
 echo ""
 echo "✅ Vernal Pi setup complete."
 echo ""
 echo "Next steps:"
 echo "  1. Add your SSH public key to ~/.ssh/authorized_keys"
-echo "  2. Copy /etc/vernal/config.json.example to /etc/vernal/config.json"
+echo "  2. Copy /etc/sow-now/config.json.example to /etc/sow-now/config.json"
 echo "  3. Fill in device_id and device_jwt from the Vernal app QR scan"
-echo "  4. sudo systemctl start vernal-agent"
-echo "  5. sudo journalctl -u vernal-agent -f   (to watch logs)"
+echo "  4. sudo systemctl start sow-now-agent"
+echo "  5. sudo journalctl -u sow-now-agent -f   (to watch logs)"
 echo "  6. Reboot to activate SPI: sudo reboot"

@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
 """
-Vernal Pi Agent — main entry point
+Sow Now Pi Agent — main entry point
 ===================================
-Raspberry Pi Zero 2W hub software for the Vernal growing platform.
+Raspberry Pi Zero 2W hub software for the Sow Now growing platform.
 
 Responsibilities:
   - Read WS69 weather station data from rtl_433 JSON output (stdin/pipe)
@@ -11,7 +11,7 @@ Responsibilities:
   - Batch-upload readings to Cloudflare Workers ingest API every 5 minutes
   - Handle offline periods with automatic retry on reconnect
 
-Usage (run via systemd — see setup/vernal-agent.service):
+Usage (run via systemd — see setup/sow-now-agent.service):
   python3 -m agent.main
 """
 
@@ -32,7 +32,7 @@ logging.basicConfig(
     datefmt='%Y-%m-%dT%H:%M:%S',
     stream=sys.stdout,
 )
-log = logging.getLogger("vernal.agent")
+log = logging.getLogger("sow-now.agent")
 
 
 async def main() -> None:

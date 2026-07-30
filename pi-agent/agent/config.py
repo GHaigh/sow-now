@@ -1,6 +1,6 @@
 """
 Vernal agent configuration loader.
-Reads from /etc/vernal/config.json (written at provisioning time).
+Reads from /etc/sow-now/config.json (written at provisioning time).
 Falls back to environment variables for development.
 """
 
@@ -10,8 +10,8 @@ from dataclasses import dataclass
 from pathlib import Path
 
 
-CONFIG_PATH = Path("/etc/vernal/config.json")
-DEFAULT_DB_PATH = Path("/var/lib/vernal/readings.db")
+CONFIG_PATH = Path("/etc/sow-now/config.json")
+DEFAULT_DB_PATH = Path("/var/lib/sow-now/readings.db")
 
 
 @dataclass

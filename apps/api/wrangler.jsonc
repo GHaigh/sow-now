@@ -1,6 +1,6 @@
 {
   "$schema": "./node_modules/wrangler/config-schema.json",
-  "name": "vernal-api",
+  "name": "sow-now-api",
   "routes": [
     { "pattern": "api.sow-now.uk/*", "zone_name": "sow-now.uk" }
   ],
@@ -85,13 +85,13 @@
   // ── Environments ───────────────────────────────────────────────────────────
   "env": {
     "staging": {
-      "name": "vernal-api-staging",
+      "name": "sow-now-api-staging",
       "vars": {
         "ENVIRONMENT": "staging"
       }
     },
     "production": {
-      "name": "vernal-api",
+      "name": "sow-now-api",
       "vars": {
         "ENVIRONMENT": "production"
       }

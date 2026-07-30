@@ -14,7 +14,7 @@ Sensor node packet format (12 bytes, AES-128 encrypted):
   Bytes 8–11: Message counter (uint32, replay protection)
 
 Decryption uses AES-128-ECB with the node's pre-shared key.
-Keys are provisioned at manufacture and stored in /etc/vernal/node_keys.json.
+Keys are provisioned at manufacture and stored in /etc/sow-now/node_keys.json.
 """
 
 import asyncio
@@ -25,9 +25,9 @@ import time
 from pathlib import Path
 from typing import Any
 
-log = logging.getLogger("vernal.lora")
+log = logging.getLogger("sow-now.lora")
 
-NODE_KEYS_PATH = Path("/etc/vernal/node_keys.json")
+NODE_KEYS_PATH = Path("/etc/sow-now/node_keys.json")
 
 # LoRa parameters matching the sensor node firmware
 LORA_FREQUENCY   = 433_925_000   # Hz
@@ -48,7 +48,7 @@ class LoraReader:
         self._seen_counters: dict[int, int] = {}   # replay protection
 
     def _load_node_keys(self) -> dict[int, bytes]:
-        """Load AES-128 keys for each node ID from /etc/vernal/node_keys.json."""
+        """Load AES-128 keys for each node ID from /etc/sow-now/node_keys.json."""
         if not NODE_KEYS_PATH.exists():
             log.warning("node_keys.json not found — LoRa decryption will fail")
             return {}

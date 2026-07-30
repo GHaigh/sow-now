@@ -38,7 +38,7 @@ export async function issueDeviceToken(
     sub: deviceId,
     iat: Math.floor(Date.now() / 1000),
     exp: Math.floor(Date.now() / 1000) + ttlSeconds,
-    aud: 'vernal-device',
+    aud: 'sow-now-device',
   })));
   const key  = await importKey(secret);
   const sig  = await crypto.subtle.sign(ALG, key, new TextEncoder().encode(`${header}.${payload}`));
@@ -79,7 +79,7 @@ export async function verifyDeviceToken(
 
   const claims = JSON.parse(new TextDecoder().decode(base64UrlDecode(payload))) as DeviceTokenPayload;
   if (claims.exp < Math.floor(Date.now() / 1000)) throw new Error('Token expired');
-  if (claims.aud !== 'vernal-device') throw new Error('Token audience mismatch');
+  if (claims.aud !== 'sow-now-device') throw new Error('Token audience mismatch');
 
   return claims;
 }

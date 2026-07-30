@@ -2,7 +2,7 @@
   "device_id":        "REPLACE_AT_MANUFACTURE",
   "device_jwt":       "REPLACE_FROM_PROVISIONING",
   "ingest_url":       "https://api.sow-now.uk/api/v1/ingest",
-  "db_path":          "/var/lib/vernal/readings.db",
+  "db_path":          "/var/lib/sow-now/readings.db",
   "upload_interval_s": 300,
   "rtl433_cmd":       "/usr/bin/rtl_433",
   "lora_spi_bus":     0,

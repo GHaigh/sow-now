@@ -1,13 +1,13 @@
-# Vernal 🌱
+# Sow Now 🌱
 
 > *Your season starts here.*
 
-Precision Growing Degree Day platform for home growers. Local sensors + GDD science + AI advice, delivered to your phone every morning.
+Sow Now — Precision GDD platform for home growers. Local sensors + GDD science + AI advice, delivered to your phone every morning.
 
 ## Monorepo Structure
 
 ```
-vernal/
+sow-now/
 ├── apps/
 │   ├── api/          # Cloudflare Workers — ingest, GDD engine, advice API
 │   └── web/          # React PWA — mobile-first dashboard (Cloudflare Pages)
@@ -35,8 +35,8 @@ vernal/
 ### 1. Clone and install
 
 ```bash
-git clone https://github.com/GHaigh/vernal.git
-cd vernal
+git clone https://github.com/GHaigh/sow-now.git
+cd sow-now
 npm install
 ```
 

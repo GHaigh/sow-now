@@ -23,7 +23,7 @@ function runJson(cmd) {
   return JSON.parse(raw);
 }
 
-console.log('🌱 Vernal — Cloudflare resource setup\n');
+console.log('🌱 Sow Now — Cloudflare resource setup\n');
 
 // ── D1 Database ──────────────────────────────────────────────────────────────
 console.log('── Creating D1 database...');

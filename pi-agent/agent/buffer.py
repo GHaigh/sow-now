@@ -12,7 +12,7 @@ import logging
 from pathlib import Path
 from typing import Any
 
-log = logging.getLogger("vernal.buffer")
+log = logging.getLogger("sow-now.buffer")
 
 SCHEMA = """
 CREATE TABLE IF NOT EXISTS readings (

@@ -1,4 +1,4 @@
--- Vernal D1 seed data — crop knowledge base
+-- Sow Now D1 seed data — crop knowledge base
 -- Apply with: npm run db:seed:local
 -- This seeds reference data only — no user data
 

@@ -1,1 +1,1 @@
-# Vernal Pi Agent package
+# Sow Now Pi Agent package

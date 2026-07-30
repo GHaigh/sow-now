@@ -1,4 +1,4 @@
--- Vernal D1 Database Schema
+-- Sow Now D1 Database Schema
 -- Migration 0001 — initial schema
 -- Apply with: wrangler d1 migrations apply vernal-db --remote
 

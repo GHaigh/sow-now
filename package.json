@@ -1,8 +1,8 @@
 {
-  "name": "vernal",
+  "name": "sow-now",
   "version": "0.1.0",
   "private": true,
-  "description": "Precision GDD platform for home growers",
+  "description": "Sow Now — Precision GDD platform for home growers",
   "workspaces": [
     "apps/*",
     "packages/*"
