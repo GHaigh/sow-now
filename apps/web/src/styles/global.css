@@ -1,0 +1,121 @@
+/* ── Reset & base ─────────────────────────────────────── */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+html {
+  font-family: -apple-system, "Segoe UI", system-ui, sans-serif;
+  font-size: 16px;
+  line-height: 1.5;
+  -webkit-text-size-adjust: 100%;
+  /* Safe area insets for notched phones */
+  padding-top: env(safe-area-inset-top);
+  padding-bottom: env(safe-area-inset-bottom);
+}
+
+body {
+  background: #f7f8fa;
+  color: #1f2328;
+  min-height: 100dvh;
+  overscroll-behavior-y: none;
+}
+
+#root {
+  min-height: 100dvh;
+  display: flex;
+  flex-direction: column;
+}
+
+/* ── Typography ───────────────────────────────────────── */
+h1 { font-size: 1.5rem; font-weight: 800; letter-spacing: -0.5px; }
+h2 { font-size: 1.15rem; font-weight: 700; }
+h3 { font-size: 0.95rem; font-weight: 600; }
+p  { font-size: 0.9rem; color: #57606a; }
+
+/* ── Buttons ──────────────────────────────────────────── */
+.btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  width: 100%;
+  padding: 14px 20px;
+  border: none;
+  border-radius: 12px;
+  font-size: 1rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: opacity 0.15s;
+  -webkit-tap-highlight-color: transparent;
+}
+.btn:active { opacity: 0.8; }
+.btn-primary   { background: #166534; color: #fff; }
+.btn-secondary { background: #e5e7eb; color: #1f2328; }
+.btn-ghost     { background: transparent; color: #166534; border: 2px solid #166534; }
+.btn:disabled  { opacity: 0.45; cursor: not-allowed; }
+
+/* ── Cards ────────────────────────────────────────────── */
+.card {
+  background: #fff;
+  border-radius: 16px;
+  padding: 16px;
+  box-shadow: 0 1px 3px rgba(0,0,0,.06);
+}
+
+/* ── Badges ───────────────────────────────────────────── */
+.badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 0.72rem;
+  font-weight: 700;
+  padding: 3px 8px;
+  border-radius: 20px;
+}
+.badge-green  { background: #d1fae5; color: #065f46; }
+.badge-amber  { background: #fef3c7; color: #92400e; }
+.badge-red    { background: #fee2e2; color: #991b1b; }
+.badge-blue   { background: #dbeafe; color: #1e40af; }
+.badge-grey   { background: #f3f4f6; color: #6b7280; }
+
+/* ── Form inputs ──────────────────────────────────────── */
+.input {
+  width: 100%;
+  padding: 13px 16px;
+  border: 1.5px solid #e5e7eb;
+  border-radius: 10px;
+  font-size: 1rem;
+  background: #fff;
+  color: #1f2328;
+  outline: none;
+  transition: border-color 0.15s;
+}
+.input:focus { border-color: #166534; }
+
+/* ── Progress bar ─────────────────────────────────────── */
+.progress-track {
+  height: 6px;
+  background: #e5e7eb;
+  border-radius: 99px;
+  overflow: hidden;
+}
+.progress-fill {
+  height: 100%;
+  background: #166534;
+  border-radius: 99px;
+  transition: width 0.4s ease;
+}
+
+/* ── Utility ──────────────────────────────────────────── */
+.text-muted   { color: #57606a; }
+.text-green   { color: #166534; }
+.text-amber   { color: #92400e; }
+.text-red     { color: #991b1b; }
+.gap-8        { gap: 8px; }
+.gap-12       { gap: 12px; }
+.gap-16       { gap: 16px; }
+.stack        { display: flex; flex-direction: column; }
+.stack-8      { display: flex; flex-direction: column; gap: 8px; }
+.stack-12     { display: flex; flex-direction: column; gap: 12px; }
+.stack-16     { display: flex; flex-direction: column; gap: 16px; }
+.row          { display: flex; flex-direction: row; align-items: center; }
+.row-between  { display: flex; flex-direction: row; align-items: center; justify-content: space-between; }
+.fill         { flex: 1; }

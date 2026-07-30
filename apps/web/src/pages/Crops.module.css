@@ -1,0 +1,53 @@
+.page { background: #f7f8fa; min-height: 100%; }
+
+.header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  padding: 20px 20px 12px;
+  background: #fff;
+  border-bottom: 1px solid #f0f0f0;
+}
+
+.header h1 { font-size: 1.6rem; font-weight: 800; letter-spacing: -0.5px; }
+.header p  { font-size: 0.8rem; color: #9ca3af; margin-top: 2px; }
+
+.addBtn { width: auto; padding: 10px 18px; font-size: 0.9rem; }
+
+.sectionLabel {
+  font-size: 0.72rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.07em;
+  color: #9ca3af;
+  margin-top: 8px;
+}
+
+.label {
+  display: block;
+  font-size: 0.78rem;
+  font-weight: 700;
+  color: #57606a;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  margin-bottom: 6px;
+}
+
+/* Bottom sheet */
+.sheet {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,.4);
+  z-index: 200;
+  display: flex;
+  align-items: flex-end;
+}
+
+.sheetInner {
+  background: #fff;
+  border-radius: 20px 20px 0 0;
+  padding: 24px 20px calc(32px + env(safe-area-inset-bottom));
+  width: 100%;
+  max-height: 85dvh;
+  overflow-y: auto;
+}

@@ -1,0 +1,49 @@
+.page { background: #f7f8fa; min-height: 100%; }
+
+.header {
+  padding: 20px 20px 12px;
+  background: #fff;
+  border-bottom: 1px solid #f0f0f0;
+}
+
+.header h1 { font-size: 1.6rem; font-weight: 800; letter-spacing: -0.5px; }
+.header p  { font-size: 0.8rem; color: #9ca3af; margin-top: 2px; }
+
+.summaryCard {
+  background: #166534;
+  color: #fff;
+  text-align: center;
+  padding: 24px 16px;
+}
+
+.summaryIcon  { font-size: 2rem; margin-bottom: 8px; }
+.summaryTitle { font-size: 1.1rem; font-weight: 800; color: #fff; }
+
+.actionCard {
+  display: flex;
+  gap: 14px;
+  align-items: flex-start;
+  padding: 16px;
+}
+
+.actionNum {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  background: #166534;
+  color: #fff;
+  font-weight: 800;
+  font-size: 0.85rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  margin-top: 1px;
+}
+
+.actionText {
+  font-size: 0.92rem;
+  color: #1f2328;
+  line-height: 1.55;
+  flex: 1;
+}
