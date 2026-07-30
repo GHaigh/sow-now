@@ -21,6 +21,8 @@ import { handleLiveReadings } from './routes/live';
 import { handleDashboard }    from './routes/dashboard';
 import { handleAdvice }       from './routes/advice';
 import { handleCrops }        from './routes/crops';
+import { handleAuth, getMe }  from './routes/auth';
+import { handleSensors }      from './routes/sensors';
 import { handleAdviceQueue }  from './queue/advice-consumer';
 import { runGddEngine }       from './cron/gdd-engine';
 import { corsHeaders, errorResponse } from './lib/http';
@@ -39,6 +41,11 @@ export default {
     const path = url.pathname;
 
     try {
+      // ── Auth routes (public) ──────────────────────────────────────────────
+      if (path.startsWith('/api/v1/auth') || path === '/api/v1/me') {
+        return handleAuth(request, env, ctx);
+      }
+
       // ── Device routes (device JWT auth) ──────────────────────────────────
       if (path === '/api/v1/ingest' && request.method === 'POST') {
         return handleIngest(request, env, ctx);
@@ -59,6 +66,9 @@ export default {
       }
       if (path.startsWith('/api/v1/crops')) {
         return handleCrops(request, env, ctx);
+      }
+      if (path === '/api/v1/sensors' && request.method === 'GET') {
+        return handleSensors(request, env, ctx);
       }
 
       return errorResponse(404, 'Not found');

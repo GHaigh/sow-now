@@ -1,3 +1,4 @@
+import { getUserIdFromSession } from './auth';
 /**
  * GET /api/v1/readings/live
  *

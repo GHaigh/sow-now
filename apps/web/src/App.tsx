@@ -1,4 +1,5 @@
-import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
+import { useEffect } from 'react';
+import { BrowserRouter, Routes, Route, Navigate, useNavigate } from 'react-router-dom';
 import { AuthProvider, useAuth } from './context/AuthContext';
 import { OnboardingPage } from './pages/Onboarding';
 import { DashboardPage } from './pages/Dashboard';
@@ -26,6 +27,22 @@ function ProtectedRoutes() {
   );
 }
 
+// Handles the #session=TOKEN redirect from the magic link verify endpoint
+function SessionCapture() {
+  const navigate = useNavigate();
+  useEffect(() => {
+    const hash = window.location.hash;
+    if (hash.startsWith('#session=')) {
+      const token = hash.slice(9);
+      localStorage.setItem('session_token', token);
+      window.location.hash = '';
+      navigate('/', { replace: true });
+      window.location.reload();
+    }
+  }, [navigate]);
+  return null;
+}
+
 function SplashScreen() {
   return (
     <div style={{
@@ -47,8 +64,10 @@ export function App() {
   return (
     <AuthProvider>
       <BrowserRouter>
+        <SessionCapture />
         <Routes>
           <Route path="/login" element={<LoginPage />} />
+          <Route path="/auth/verify" element={<SessionCapture />} />
           <Route path="/setup/*" element={<OnboardingPage />} />
           <Route path="/*" element={<ProtectedRoutes />} />
         </Routes>

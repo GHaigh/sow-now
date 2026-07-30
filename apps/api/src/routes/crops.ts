@@ -1,3 +1,4 @@
+import { getUserIdFromSession } from './auth';
 /**
  * /api/v1/crops — CRUD for user's crop planting plan
  *
