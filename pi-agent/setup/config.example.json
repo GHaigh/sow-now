@@ -1,7 +1,7 @@
 {
   "device_id":        "REPLACE_AT_MANUFACTURE",
   "device_jwt":       "REPLACE_FROM_PROVISIONING",
-  "ingest_url":       "https://api.vernal.app/api/v1/ingest",
+  "ingest_url":       "https://api.sow-now.uk/api/v1/ingest",
   "db_path":          "/var/lib/vernal/readings.db",
   "upload_interval_s": 300,
   "rtl433_cmd":       "/usr/bin/rtl_433",

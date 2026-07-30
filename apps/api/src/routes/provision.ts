@@ -77,7 +77,7 @@ export async function handleProvision(
     deviceId: record.device_id,
     serial: record.serial,
     deviceJwt,   // Returned once — hub must store this securely
-    ingestUrl: 'https://api.vernal.app/api/v1/ingest',
+    ingestUrl: 'https://api.sow-now.uk/api/v1/ingest',
   }, 200, request);
 }
 

@@ -5,9 +5,9 @@
 /** CORS headers — allow Vernal web app origin only */
 export function corsHeaders(request: Request): HeadersInit {
   const origin = request.headers.get('Origin') ?? '';
-  const allowed = /^https:\/\/(vernal\.app|[a-z0-9-]+\.vernal\.pages\.dev)$/.test(origin)
+  const allowed = /^https:\/\/(sow-now\.uk|[a-z0-9-]+\.sow-now\.uk|[a-z0-9-]+\.pages\.dev)$/.test(origin)
     ? origin
-    : 'https://vernal.app';
+    : 'https://sow-now.uk';
 
   return {
     'Access-Control-Allow-Origin': allowed,

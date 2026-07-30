@@ -1,6 +1,9 @@
 {
   "$schema": "./node_modules/wrangler/config-schema.json",
   "name": "vernal-api",
+  "routes": [
+    { "pattern": "api.sow-now.uk/*", "zone_name": "sow-now.uk" }
+  ],
   "main": "src/index.ts",
   "compatibility_date": "2025-05-01",
   "compatibility_flags": ["nodejs_compat"],

@@ -42,7 +42,7 @@ def load_config() -> Config:
     return Config(
         device_id        = get("device_id"),
         device_jwt       = get("device_jwt"),
-        ingest_url       = get("ingest_url", "https://api.vernal.app/api/v1/ingest"),
+        ingest_url       = get("ingest_url", "https://api.sow-now.uk/api/v1/ingest"),
         db_path          = Path(get("db_path", str(DEFAULT_DB_PATH))),
         upload_interval_s= int(get("upload_interval_s", "300")),
         rtl433_cmd       = get("rtl433_cmd", "/usr/bin/rtl_433"),

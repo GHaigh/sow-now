@@ -68,7 +68,7 @@ export async function handleLiveReadings(
       'Content-Type': 'text/event-stream',
       'Cache-Control': 'no-cache',
       'Connection': 'keep-alive',
-      'Access-Control-Allow-Origin': 'https://vernal.app',
+      'Access-Control-Allow-Origin': 'https://sow-now.uk',
     },
   });
 }
