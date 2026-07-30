@@ -30,11 +30,13 @@ CREATE TABLE IF NOT EXISTS readings (
     rain_mm         REAL,
     uv_index        REAL,
     solar_lux       REAL,
-    -- Soil / greenhouse
+    -- Soil / greenhouse / indoor
     soil_moisture_pct       REAL,
     soil_temp_c             REAL,
     greenhouse_temp_c       REAL,
     greenhouse_humidity_pct REAL,
+    indoor_temp_c           REAL,
+    indoor_humidity_pct     REAL,
     battery_pct             INTEGER,
     -- Sync
     uploaded        INTEGER NOT NULL DEFAULT 0
@@ -74,6 +76,7 @@ class ReadingBuffer:
                 rain_mm, uv_index, solar_lux,
                 soil_moisture_pct, soil_temp_c,
                 greenhouse_temp_c, greenhouse_humidity_pct,
+                indoor_temp_c, indoor_humidity_pct,
                 battery_pct
             ) VALUES (
                 :sensor_rf_id, :sensor_type, :recorded_at,
@@ -82,6 +85,7 @@ class ReadingBuffer:
                 :rain_mm, :uv_index, :solar_lux,
                 :soil_moisture_pct, :soil_temp_c,
                 :greenhouse_temp_c, :greenhouse_humidity_pct,
+                :indoor_temp_c, :indoor_humidity_pct,
                 :battery_pct
             )
             """,
@@ -102,7 +106,9 @@ class ReadingBuffer:
                 "soil_temp_c":             reading.get("soil_temp_c"),
                 "greenhouse_temp_c":       reading.get("greenhouse_temp_c"),
                 "greenhouse_humidity_pct": reading.get("greenhouse_humidity_pct"),
-                "battery_pct":     reading.get("battery_pct"),
+                "indoor_temp_c":           reading.get("indoor_temp_c"),
+                "indoor_humidity_pct":     reading.get("indoor_humidity_pct"),
+                "battery_pct":             reading.get("battery_pct"),
             },
         )
         self._conn.commit()

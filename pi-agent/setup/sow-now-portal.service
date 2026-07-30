@@ -1,0 +1,32 @@
+[Unit]
+Description=Sow Now — WiFi captive portal (first-boot WiFi setup)
+# Run before the agent, and before network-online.target is satisfied
+Before=network-online.target sow-now-agent.service
+# Only run if WiFi is not yet configured
+ConditionPathExists=!/etc/sow-now/wifi.conf
+
+[Service]
+Type=simple
+# Must run as root — needs hostapd, dnsmasq, ip commands
+User=root
+WorkingDirectory=/opt/sow-now-agent
+
+ExecStart=/opt/sow-now-agent/venv/bin/python3 -m portal.portal
+
+# Exit cleanly once WiFi is written — don't restart
+Restart=no
+
+# Give it up to 10 minutes for the customer to complete setup
+TimeoutStartSec=600
+
+# Security — limit what root process can do
+NoNewPrivileges=false  # hostapd/dnsmasq subprocesses need this
+PrivateTmp=true
+
+Environment=PYTHONUNBUFFERED=1
+StandardOutput=journal
+StandardError=journal
+SyslogIdentifier=sow-now-portal
+
+[Install]
+WantedBy=multi-user.target

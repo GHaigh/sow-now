@@ -29,12 +29,18 @@ interface LatestReadings {
     humidity_pct: number | null;
     recorded_at: number | null;
   };
+  indoor: {
+    temp_c: number | null;
+    humidity_pct: number | null;
+    recorded_at: number | null;
+  };
   soil: Record<string, { moisture_pct: number | null; temp_c: number | null; battery_pct: number | null; recorded_at: number | null }>;
 }
 
 interface GddAccumulators {
   outdoor: number;
   greenhouse: number;
+  indoor: number;
   season_start: string;   // 'YYYY-MM-DD'
 }
 
@@ -49,9 +55,10 @@ const DEFAULT_STATE: DeviceState = {
   latest: {
     outdoor:    { temp_c: null, humidity_pct: null, wind_avg_ms: null, rain_mm: null, uv_index: null, recorded_at: null },
     greenhouse: { temp_c: null, humidity_pct: null, recorded_at: null },
+    indoor:     { temp_c: null, humidity_pct: null, recorded_at: null },
     soil: {},
   },
-  gdd: { outdoor: 0, greenhouse: 0, season_start: new Date().toISOString().slice(0, 10) },
+  gdd: { outdoor: 0, greenhouse: 0, indoor: 0, season_start: new Date().toISOString().slice(0, 10) },
   alerts: [],
   updated_at: 0,
 };
@@ -116,6 +123,12 @@ export class DeviceStateDO {
           temp_c:       (r['greenhouse_temp_c'] as number | null) ?? this.deviceState.latest.greenhouse.temp_c,
           humidity_pct: (r['greenhouse_humidity_pct'] as number | null) ?? this.deviceState.latest.greenhouse.humidity_pct,
           recorded_at:  (r['recorded_at'] as number) ?? this.deviceState.latest.greenhouse.recorded_at,
+        };
+      } else if (sensorType === 'indoor') {
+        this.deviceState.latest.indoor = {
+          temp_c:       (r['indoor_temp_c'] as number | null) ?? this.deviceState.latest.indoor.temp_c,
+          humidity_pct: (r['indoor_humidity_pct'] as number | null) ?? this.deviceState.latest.indoor.humidity_pct,
+          recorded_at:  (r['recorded_at'] as number) ?? this.deviceState.latest.indoor.recorded_at,
         };
       } else if (sensorType === 'soil') {
         this.deviceState.latest.soil[rfId] = {

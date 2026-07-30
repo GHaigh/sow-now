@@ -1,18 +1,8 @@
-# Vernal Pi Agent — Python dependencies
+# Sow Now Pi Agent — Python dependencies
 # Install into venv: pip install -r requirements.txt
 
 # Async HTTP client — for uplink to Cloudflare Workers
 httpx==0.28.1
 
-# AES-128 decryption for LoRa node packets
-pycryptodome==3.22.0
-
-# SX126x LoRa radio driver (Waveshare SX1262 HAT)
-# GPIO and SPI support
-RPi.GPIO==0.7.1
-spidev==3.7
-
-# Note: sx126x Python library is installed from the Waveshare GitHub repo
-# in setup/install.sh — not on PyPI.
-# Repo: https://github.com/Lora-net/sx126x_driver_for_rpi_and_arduino
-# The lora_reader.py gracefully degrades to simulation mode if not available.
+# Note: all sensor decoding is handled by the rtl_433 system binary (installed
+# via apt in setup/install.sh). No Python radio/GPIO libraries are needed.

@@ -1,15 +1,14 @@
 """
-rtl_433 reader — decodes Ecowitt WS69 / Fine Offset weather station.
+rtl_433 reader — decodes all Ecowitt / Fine Offset sensors via RTL-SDR.
 
-Launches rtl_433 as a subprocess, reads its JSON output line-by-line,
-normalises the fields to Vernal's internal reading format, and writes
-each reading to the local buffer.
+Supported devices:
+  Protocol 119  Fineoffset-WS68/WS69  — outdoor weather station (temp, humidity,
+                                         wind, rain, UV, solar)
+  Protocol 167  Fineoffset-WH51       — soil moisture sensor
+  Protocol  55  Fineoffset-WH25/WH31  — thermo-hygro sensor (greenhouse)
 
 rtl_433 is launched with:
-  rtl_433 -f 433920000 -F json -M utc -R 0 -R 119
-                                                ^^^
-  -R 0 disables all decoders; -R 119 enables only Fineoffset-WS68 family
-  which covers the WS69. This reduces CPU usage and avoids false matches.
+  rtl_433 -f 868000000 -F json -M utc -R 0 -R 119 -R 167 -R 55
 """
 
 import asyncio
@@ -21,8 +20,10 @@ from agent.config import Config
 
 log = logging.getLogger("sow-now.rtl433")
 
-# rtl_433 device ID for Fineoffset-WS68 / WS69 family
-FINEOFFSET_PROTOCOL = 119
+# rtl_433 protocol numbers
+PROTOCOL_WS69  = 119   # Fineoffset-WS68/WS69 — weather station
+PROTOCOL_WH51  = 167   # Fineoffset-WH51      — soil moisture
+PROTOCOL_WH31  = 55    # Fineoffset-WH25/31   — thermo-hygro (greenhouse)
 
 
 class Rtl433Reader:
@@ -41,11 +42,13 @@ class Rtl433Reader:
     async def _run_subprocess(self, buffer: ReadingBuffer, shutdown: asyncio.Event) -> None:
         cmd = [
             self._config.rtl433_cmd,
-            "-f", str(self._config.lora_frequency_hz),
+            "-f", str(self._config.ws_frequency_hz),
             "-F", "json",
             "-M", "utc",
-            "-R", "0",          # disable all decoders
-            "-R", str(FINEOFFSET_PROTOCOL),  # enable WS69 decoder only
+            "-R", "0",                        # disable all decoders first
+            "-R", str(PROTOCOL_WS69),         # WS69 weather station
+            "-R", str(PROTOCOL_WH51),         # WH51 soil moisture
+            "-R", str(PROTOCOL_WH31),         # WH31 greenhouse thermo-hygro
         ]
 
         log.info("Starting rtl_433: %s", " ".join(cmd))
@@ -69,25 +72,36 @@ class Rtl433Reader:
             await proc.wait()
 
     def _parse_and_buffer(self, line: str, buffer: ReadingBuffer) -> None:
-        """Parse one JSON line from rtl_433 and write to buffer."""
+        """Parse one JSON line from rtl_433, route to the correct handler."""
         try:
             data = json.loads(line)
         except json.JSONDecodeError:
             return
 
-        # Extract device identity
         model = data.get("model", "")
+
+        if "WH51" in model or "Fineoffset-WH51" in model:
+            self._handle_wh51(data, buffer)
+        elif "WH25" in model or "WH31" in model or "Fineoffset-WH25" in model:
+            self._handle_wh31(data, buffer)
+        elif "Fineoffset" in model or "Fine_Offset" in model:
+            self._handle_ws69(data, buffer)
+        # else: unknown model — silently ignore
+
+    # ── WH31 channel routing ──────────────────────────────────────────────────
+    # Channel 1 = greenhouse (default placement)
+    # Channel 2+ = indoor (propagator / windowsill)
+    # Customers assign channels by physically placing the sensor.
+    GREENHOUSE_CHANNEL = 1
+
+    # ── WS69 weather station ──────────────────────────────────────────────────
+
+    def _handle_ws69(self, data: dict, buffer: ReadingBuffer) -> None:
         device_id = str(data.get("id", "ws69"))
-        sensor_rf_id = f"ws69_{device_id}"
-
-        if "Fineoffset" not in model and "Fine_Offset" not in model:
-            return  # Ignore non-WS69 decodes
-
         reading: dict = {
-            "sensor_rf_id": sensor_rf_id,
+            "sensor_rf_id": f"ws69_{device_id}",
             "sensor_type":  "weather_station",
             "recorded_at":  int(time.time()),
-            # Map rtl_433 field names to Vernal's field names
             "temp_c":       data.get("temperature_C"),
             "humidity_pct": data.get("humidity"),
             "pressure_hpa": data.get("pressure_hPa"),
@@ -98,11 +112,78 @@ class Rtl433Reader:
             "uv_index":     data.get("uv"),
             "solar_lux":    data.get("solar_lux"),
         }
-
         buffer.insert(reading)
         log.debug(
-            "WS69 reading: temp=%.1f°C hum=%.0f%% wind=%.1fm/s",
+            "WS69 [%s]: temp=%.1f°C hum=%.0f%% wind=%.1fm/s",
+            device_id,
             reading["temp_c"] or 0,
             reading["humidity_pct"] or 0,
             reading["wind_avg_ms"] or 0,
         )
+
+    # ── WH51 soil moisture ────────────────────────────────────────────────────
+
+    def _handle_wh51(self, data: dict, buffer: ReadingBuffer) -> None:
+        device_id = str(data.get("id", "wh51"))
+        # rtl_433 reports moisture as 0–100 integer percent
+        moisture = data.get("moisture")
+        battery_mv = data.get("battery_mV") or data.get("battery_ok")
+        # Normalise battery: rtl_433 WH51 reports battery_mV or battery_ok (0/1)
+        if isinstance(battery_mv, (int, float)) and battery_mv > 10:
+            battery_pct = min(100, max(0, int((battery_mv - 900) / (1500 - 900) * 100)))
+        else:
+            battery_pct = 100 if battery_mv else 10  # battery_ok=1→full, 0→low
+
+        reading: dict = {
+            "sensor_rf_id":      f"wh51_{device_id}",
+            "sensor_type":       "soil",
+            "recorded_at":       int(time.time()),
+            "soil_moisture_pct": float(moisture) if moisture is not None else None,
+            "soil_temp_c":       data.get("temperature_C"),
+            "battery_pct":       battery_pct,
+        }
+        buffer.insert(reading)
+        log.debug(
+            "WH51 [%s]: moisture=%.0f%% soil_temp=%s bat=%d%%",
+            device_id,
+            moisture or 0,
+            reading["soil_temp_c"],
+            battery_pct,
+        )
+
+    # ── WH31 greenhouse thermo-hygro ──────────────────────────────────────────
+
+    def _handle_wh31(self, data: dict, buffer: ReadingBuffer) -> None:
+        device_id  = str(data.get("id", "wh31"))
+        channel    = data.get("channel", 1)
+        battery_ok = data.get("battery_ok", 1)
+        temp       = data.get("temperature_C")
+        humidity   = data.get("humidity")
+
+        # Channel 1 → greenhouse, channel 2+ → indoor (propagator/windowsill)
+        is_indoor = int(channel) != self.GREENHOUSE_CHANNEL
+
+        if is_indoor:
+            reading: dict = {
+                "sensor_rf_id":        f"wh31_{device_id}_ch{channel}",
+                "sensor_type":         "indoor",
+                "recorded_at":         int(time.time()),
+                "indoor_temp_c":       temp,
+                "indoor_humidity_pct": humidity,
+                "battery_pct":         100 if battery_ok else 10,
+            }
+            log.debug("WH31 [%s] ch%s (indoor): temp=%.1f°C hum=%.0f%% bat=%s",
+                      device_id, channel, temp or 0, humidity or 0, "ok" if battery_ok else "low")
+        else:
+            reading = {
+                "sensor_rf_id":            f"wh31_{device_id}_ch{channel}",
+                "sensor_type":             "greenhouse",
+                "recorded_at":             int(time.time()),
+                "greenhouse_temp_c":       temp,
+                "greenhouse_humidity_pct": humidity,
+                "battery_pct":             100 if battery_ok else 10,
+            }
+            log.debug("WH31 [%s] ch%s (greenhouse): temp=%.1f°C hum=%.0f%% bat=%s",
+                      device_id, channel, temp or 0, humidity or 0, "ok" if battery_ok else "low")
+
+        buffer.insert(reading)

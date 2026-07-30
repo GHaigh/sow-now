@@ -8,6 +8,7 @@ interface Crop {
   display_name: string;
   variety: string | null;
   bed_name: string | null;
+  zone: string;
   status: string;
   gdd_accumulated: number;
   gdd_to_harvest_min: number | null;
@@ -111,7 +112,9 @@ function CropCard({ crop, onStatusChange }: { crop: Crop; onStatusChange: (id: s
           <span style={{ fontSize: '1.5rem' }}>{emoji}</span>
           <div>
             <div style={{ fontWeight: 700 }}>{crop.display_name}</div>
-            {crop.bed_name && <div style={{ fontSize: '0.78rem', color: '#9ca3af' }}>{crop.bed_name}</div>}
+            <div style={{ fontSize: '0.78rem', color: '#9ca3af' }}>
+              {[crop.bed_name, ZONE_LABEL[crop.zone]].filter(Boolean).join(' · ')}
+            </div>
           </div>
         </div>
         <span className={`badge ${STATUS_BADGE[crop.status] ?? 'badge-grey'}`}>
@@ -156,9 +159,16 @@ function nextStatus(current: string): { status: string; label: string } | null {
   return map[current] ?? null;
 }
 
+const ZONE_LABEL: Record<string, string> = {
+  outdoor:    '🌤 Garden',
+  greenhouse: '🏡 Greenhouse',
+  indoor:     '🪴 Indoors',
+};
+
 function AddCropSheet({ onClose }: { onClose: () => void }) {
   const [cropKey, setCropKey] = useState('tomato');
   const [bedName, setBedName] = useState('');
+  const [zone, setZone]       = useState('outdoor');
   const [saving, setSaving]   = useState(false);
 
   const CROPS = Object.entries(CROP_EMOJI).map(([key, emoji]) => ({
@@ -171,7 +181,7 @@ function AddCropSheet({ onClose }: { onClose: () => void }) {
     try {
       await apiFetch('/api/v1/crops', {
         method: 'POST',
-        body: JSON.stringify({ crop_key: cropKey, bed_name: bedName || null, status: 'planned' }),
+        body: JSON.stringify({ crop_key: cropKey, bed_name: bedName || null, zone, status: 'planned' }),
       });
       onClose();
     } finally { setSaving(false); }
@@ -194,8 +204,16 @@ function AddCropSheet({ onClose }: { onClose: () => void }) {
             </select>
           </div>
           <div>
+            <label className={styles.label}>Where are you growing it?</label>
+            <select className="input" value={zone} onChange={e => setZone(e.target.value)}>
+              <option value="outdoor">🌤 Garden / outdoors</option>
+              <option value="greenhouse">🏡 Greenhouse</option>
+              <option value="indoor">🪴 Indoors (windowsill / propagator)</option>
+            </select>
+          </div>
+          <div>
             <label className={styles.label}>Bed name (optional)</label>
-            <input className="input" placeholder="e.g. Bed 1, Raised bed, Greenhouse" value={bedName} onChange={e => setBedName(e.target.value)} />
+            <input className="input" placeholder="e.g. Bed 1, Propagator, South windowsill" value={bedName} onChange={e => setBedName(e.target.value)} />
           </div>
           <button className="btn btn-primary" onClick={save} disabled={saving}>
             {saving ? 'Adding…' : 'Add crop'}

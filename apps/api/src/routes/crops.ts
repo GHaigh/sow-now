@@ -41,7 +41,7 @@ export async function handleCrops(
 
 async function getCrops(userId: string, env: Env, request: Request): Promise<Response> {
   const { results } = await env.DB.prepare(`
-    SELECT c.id, c.crop_key, c.variety, c.bed_name, c.status,
+    SELECT c.id, c.crop_key, c.variety, c.bed_name, c.zone, c.status,
            c.gdd_accumulated, c.gdd_base_temp_c, c.sown_at, c.notes,
            cr.display_name, cr.gdd_to_harvest_min, cr.gdd_to_harvest_max
     FROM crops c
@@ -69,14 +69,19 @@ async function addCrop(userId: string, request: Request, env: Env): Promise<Resp
 
   const id = crypto.randomUUID().replace(/-/g, '').slice(0, 16);
 
+  const zone = (body['zone'] as string | null) ?? 'outdoor';
+  const validZones = ['outdoor', 'greenhouse', 'indoor'];
+  if (!validZones.includes(zone)) return errorResponse(400, 'Invalid zone');
+
   await env.DB.prepare(`
-    INSERT INTO crops (id, user_id, crop_key, variety, bed_name, status, gdd_base_temp_c, sown_at, notes)
-    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+    INSERT INTO crops (id, user_id, crop_key, variety, bed_name, zone, status, gdd_base_temp_c, sown_at, notes)
+    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
   `).bind(
     id, userId,
     body['crop_key'] as string,
     (body['variety'] as string | null) ?? null,
     (body['bed_name'] as string | null) ?? null,
+    zone,
     (body['status'] as string) ?? 'planned',
     ref.base_temp_c,
     (body['sown_at'] as number | null) ?? null,
@@ -93,7 +98,7 @@ async function updateCrop(
   env: Env,
 ): Promise<Response> {
   const body = await request.json() as Record<string, unknown>;
-  const allowed = ['status', 'notes', 'bed_name', 'variety', 'sown_at', 'germinated_at', 'transplanted_at', 'harvested_at'] as const;
+  const allowed = ['status', 'notes', 'bed_name', 'zone', 'variety', 'sown_at', 'germinated_at', 'transplanted_at', 'harvested_at'] as const;
   const updates: string[] = [];
   const values: unknown[] = [];
 

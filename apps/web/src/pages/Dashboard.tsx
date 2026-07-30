@@ -7,9 +7,10 @@ interface DashboardData {
   latest: {
     outdoor: { temp_c: number | null; humidity_pct: number | null; wind_avg_ms: number | null; rain_mm: number | null };
     greenhouse: { temp_c: number | null; humidity_pct: number | null };
+    indoor: { temp_c: number | null; humidity_pct: number | null };
     soil: Record<string, { moisture_pct: number | null; temp_c: number | null; battery_pct: number | null }>;
   };
-  gdd: { outdoor: number; greenhouse: number; season_start: string };
+  gdd: { outdoor: number; greenhouse: number; indoor: number; season_start: string };
   gdd_trend: Array<{ date: string; gdd: number; zone: string }>;
   crops: Array<{
     id: string; crop_key: string; display_name: string; bed_name: string | null;
@@ -65,6 +66,7 @@ export function DashboardPage() {
         <div className={styles.gddCards}>
           <GddCard label="Garden" value={gdd.outdoor} icon="🌤" />
           {gdd.greenhouse > 0 && <GddCard label="Greenhouse" value={gdd.greenhouse} icon="🏡" delta={gdd.greenhouse - gdd.outdoor} />}
+          {gdd.indoor > 0 && <GddCard label="Indoors" value={gdd.indoor} icon="🪴" delta={gdd.indoor - gdd.outdoor} />}
         </div>
         {data.gdd_trend.length > 0 && <GddChart trend={data.gdd_trend} />}
       </div>
@@ -87,6 +89,9 @@ export function DashboardPage() {
           )}
           {latest.greenhouse.temp_c != null && (
             <SensorTile icon="🏡" label="Greenhouse" value={`${latest.greenhouse.temp_c.toFixed(1)}°C`} />
+          )}
+          {latest.indoor.temp_c != null && (
+            <SensorTile icon="🪴" label="Indoors" value={`${latest.indoor.temp_c.toFixed(1)}°C`} />
           )}
         </div>
 

@@ -22,9 +22,7 @@ class Config:
     db_path: Path
     upload_interval_s: int   # How often to batch-upload (default 300 = 5 min)
     rtl433_cmd: str          # Full path to rtl_433 binary
-    lora_spi_bus: int        # SPI bus for SX1262 HAT (usually 0)
-    lora_spi_device: int     # SPI device (CS pin select, usually 0)
-    lora_frequency_hz: int   # 433_920_000 for UK 433 MHz ISM band
+    ws_frequency_hz: int     # RTL-SDR tuning frequency for Ecowitt sensors (868 MHz EU/UK)
 
 
 def load_config() -> Config:
@@ -46,7 +44,5 @@ def load_config() -> Config:
         db_path          = Path(get("db_path", str(DEFAULT_DB_PATH))),
         upload_interval_s= int(get("upload_interval_s", "300")),
         rtl433_cmd       = get("rtl433_cmd", "/usr/bin/rtl_433"),
-        lora_spi_bus     = int(get("lora_spi_bus", "0")),
-        lora_spi_device  = int(get("lora_spi_device", "0")),
-        lora_frequency_hz= int(get("lora_frequency_hz", "433920000")),
+        ws_frequency_hz  = int(get("ws_frequency_hz", "868000000")),
     )

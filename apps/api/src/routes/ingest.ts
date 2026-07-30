@@ -96,7 +96,7 @@ export async function handleIngest(
     if (typeof r['sensor_rf_id'] !== 'string') continue;
     if (typeof r['recorded_at'] !== 'number') continue;
     const sensorType = r['sensor_type'];
-    if (sensorType !== 'weather_station' && sensorType !== 'soil' && sensorType !== 'greenhouse') continue;
+    if (sensorType !== 'weather_station' && sensorType !== 'soil' && sensorType !== 'greenhouse' && sensorType !== 'indoor') continue;
 
     const rfId = r['sensor_rf_id'] as string;
 
@@ -124,13 +124,15 @@ export async function handleIngest(
           wind_avg_ms, wind_max_ms, wind_dir_deg,
           rain_mm, uv_index, solar_lux,
           soil_moisture_pct, soil_temp_c,
-          greenhouse_temp_c, greenhouse_humidity_pct
+          greenhouse_temp_c, greenhouse_humidity_pct,
+          indoor_temp_c, indoor_humidity_pct
         )
         SELECT
           s.id, ?, ?, ?,
           ?, ?, ?,
           ?, ?, ?,
           ?, ?, ?,
+          ?, ?,
           ?, ?,
           ?, ?
         FROM sensors s
@@ -150,6 +152,8 @@ export async function handleIngest(
         (r['soil_temp_c'] as number | null) ?? null,
         (r['greenhouse_temp_c'] as number | null) ?? null,
         (r['greenhouse_humidity_pct'] as number | null) ?? null,
+        (r['indoor_temp_c'] as number | null) ?? null,
+        (r['indoor_humidity_pct'] as number | null) ?? null,
         device.id, rfId,
       ),
     );

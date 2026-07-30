@@ -7,15 +7,16 @@ export function StepWifi({ onNext }: Props) {
     <div className={styles.step}>
       <div className={styles.hero}>
         <div className={styles.emoji}>📶</div>
-        <h1>Plug in your hub</h1>
-        <p>Connect the USB-C cable to the hub and plug it into a wall socket near a window facing your garden.</p>
+        <h1>Connect hub to Wi-Fi</h1>
+        <p>Your hub creates its own temporary Wi-Fi hotspot on first boot so you can tell it your home network details.</p>
       </div>
 
       <div className="stack-12" style={{ marginTop: 24 }}>
         {[
-          { n: '1', title: 'Plug in', desc: 'Connect the USB-C power cable. The hub light will flash green.' },
-          { n: '2', title: 'Position', desc: 'Place it on a windowsill facing your garden. The small antenna should point up.' },
-          { n: '3', title: 'Wait 30 seconds', desc: 'The hub connects to your Wi-Fi automatically using your home network.' },
+          { n: '1', title: 'Plug in the hub', desc: 'Connect the USB-C power cable. Wait about 30 seconds for it to start up.' },
+          { n: '2', title: 'Join the hub hotspot', desc: 'On your phone, go to Wi-Fi settings and connect to the network called SowNow-XXXX (last 4 digits will be unique to your hub).' },
+          { n: '3', title: 'Enter your Wi-Fi details', desc: 'A setup page will open automatically. Pick your home Wi-Fi network and enter your password, then tap Connect.' },
+          { n: '4', title: 'Rejoin your home Wi-Fi', desc: 'The hub hotspot will disappear as it joins your home network. Switch your phone back to your home Wi-Fi, then tap Continue below.' },
         ].map(({ n, title, desc }) => (
           <div key={n} className="card row" style={{ gap: 14 }}>
             <div className={styles.stepNum}>{n}</div>
@@ -28,12 +29,12 @@ export function StepWifi({ onNext }: Props) {
       </div>
 
       <div className={styles.hint}>
-        <p>💡 The hub connects using your existing Wi-Fi — no app or Bluetooth pairing needed.</p>
+        <p>💡 If the setup page doesn't open automatically, open a browser and go to <strong>192.168.4.1</strong></p>
       </div>
 
       <div style={{ marginTop: 'auto', paddingTop: 24 }}>
         <button className="btn btn-primary" onClick={onNext}>
-          Hub is plugged in →
+          Hub is on my Wi-Fi →
         </button>
       </div>
     </div>

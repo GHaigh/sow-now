@@ -5,8 +5,10 @@ Sow Now Pi Agent — main entry point
 Raspberry Pi Zero 2W hub software for the Sow Now growing platform.
 
 Responsibilities:
-  - Read WS69 weather station data from rtl_433 JSON output (stdin/pipe)
-  - Read soil moisture + greenhouse node data from LoRa (SX1262 via SPI)
+  - Read all Ecowitt sensor data via RTL-SDR + rtl_433:
+      WS69  — outdoor weather station (temp, humidity, wind, rain, UV)
+      WH51  — soil moisture per bed
+      WH31  — greenhouse temperature + humidity
   - Write all readings to local SQLite buffer
   - Batch-upload readings to Cloudflare Workers ingest API every 5 minutes
   - Handle offline periods with automatic retry on reconnect
@@ -20,7 +22,6 @@ import logging
 import signal
 import sys
 from agent.rtl433_reader import Rtl433Reader
-from agent.lora_reader import LoraReader
 from agent.buffer import ReadingBuffer
 from agent.uplink import Uplink
 from agent.config import load_config
@@ -43,7 +44,6 @@ async def main() -> None:
     uplink = Uplink(config)
 
     rtl_reader = Rtl433Reader(config)
-    lora_reader = LoraReader(config)
 
     # Graceful shutdown on SIGTERM / SIGINT
     shutdown_event = asyncio.Event()
@@ -51,11 +51,10 @@ async def main() -> None:
     for sig in (signal.SIGTERM, signal.SIGINT):
         loop.add_signal_handler(sig, shutdown_event.set)
 
-    log.info("Starting sensor readers and uplink task")
+    log.info("Starting RTL-SDR reader and uplink task")
 
     await asyncio.gather(
         rtl_reader.run(buffer, shutdown_event),
-        lora_reader.run(buffer, shutdown_event),
         uplink.run(buffer, shutdown_event),
     )
 

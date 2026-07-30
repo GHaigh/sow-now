@@ -91,3 +91,31 @@ jobs:
   #   Build command:     npm run build --workspace=apps/web
   #   Build output dir:  apps/web/dist
   #   Root dir:          /
+
+  # ── Deploy Marketing site (Cloudflare Pages — direct upload) ────────────
+  deploy-marketing:
+    name: Deploy Marketing → sow-now.uk
+    needs: check
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/main'
+    environment: production
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Deploy marketing site to Cloudflare Pages
+        run: |
+          npx wrangler pages deploy apps/marketing \
+            --project-name=sow-now-marketing \
+            --branch=main \
+            --commit-dirty=true
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}

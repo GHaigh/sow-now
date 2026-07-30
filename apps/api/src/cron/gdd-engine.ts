@@ -102,28 +102,54 @@ async function processDevice(
     `).bind(userId, deviceId, date, ghStats.t_max, ghStats.t_min, gdd).run();
   }
 
+  // Indoor GDD — from indoor sensor readings (propagator / windowsill WH31 ch2+)
+  const indoorStats = await env.DB.prepare(`
+    SELECT
+      MAX(indoor_temp_c) AS t_max,
+      MIN(indoor_temp_c) AS t_min
+    FROM readings r
+    JOIN sensors s ON r.sensor_id = s.id
+    WHERE r.user_id = ?
+      AND r.device_id = ?
+      AND s.sensor_type = 'indoor'
+      AND r.recorded_at >= strftime('%s', ? || ' 00:00:00')
+      AND r.recorded_at <  strftime('%s', ? || ' 23:59:59')
+      AND r.indoor_temp_c IS NOT NULL
+  `).bind(userId, deviceId, date, date).first<{ t_max: number | null; t_min: number | null }>();
+
+  if (indoorStats?.t_max != null && indoorStats.t_min != null) {
+    const gdd = calcDailyGdd(indoorStats.t_max, indoorStats.t_min, 10);
+    await env.DB.prepare(`
+      INSERT INTO gdd_daily (user_id, device_id, date, zone, base_temp_c, t_max_c, t_min_c, gdd)
+      VALUES (?, ?, ?, 'indoor', 10.0, ?, ?, ?)
+      ON CONFLICT(user_id, device_id, date, zone, base_temp_c)
+      DO UPDATE SET t_max_c = excluded.t_max_c, t_min_c = excluded.t_min_c, gdd = excluded.gdd
+    `).bind(userId, deviceId, date, indoorStats.t_max, indoorStats.t_min, gdd).run();
+  }
+
   // ── Update accumulated GDD on active crops ───────────────────────────────
-  // We re-sum from gdd_daily to keep accumulators correct even if old data
-  // arrives late (Pi sync after outage).
+  // Each crop uses its own zone for GDD accumulation.
+  // Defaults to 'outdoor' for crops created before zone column existed.
   const { results: crops } = await env.DB.prepare(`
-    SELECT id, gdd_base_temp_c, sown_at
+    SELECT id, gdd_base_temp_c, sown_at, zone
     FROM crops
     WHERE user_id = ?
       AND status NOT IN ('harvested', 'failed', 'planned')
       AND sown_at IS NOT NULL
-  `).bind(userId).all<{ id: string; gdd_base_temp_c: number; sown_at: number }>();
+  `).bind(userId).all<{ id: string; gdd_base_temp_c: number; sown_at: number; zone: string }>();
 
   for (const crop of crops) {
     const sownDate = toIsoDate(new Date(crop.sown_at * 1000));
+    const cropZone = crop.zone ?? 'outdoor';
     const { results: gddRows } = await env.DB.prepare(`
       SELECT SUM(gdd) AS total
       FROM gdd_daily
       WHERE user_id = ?
         AND device_id = ?
-        AND zone = 'outdoor'
+        AND zone = ?
         AND date >= ?
         AND base_temp_c = ?
-    `).bind(userId, deviceId, sownDate, crop.gdd_base_temp_c)
+    `).bind(userId, deviceId, cropZone, sownDate, crop.gdd_base_temp_c)
       .all<{ total: number | null }>();
 
     const total = gddRows[0]?.total ?? 0;

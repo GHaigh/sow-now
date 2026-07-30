@@ -9,7 +9,7 @@
 
   <!-- Open Graph -->
   <meta property="og:title" content="Sow Now — Grow smarter, not harder" />
-  <meta property="og:description" content="Local sensors + Growing Degree Day science = daily advice for your garden. From £99." />
+  <meta property="og:description" content="Local sensors + Growing Degree Day science = daily advice for your garden. From £199." />
   <meta property="og:url" content="https://sow-now.uk" />
   <meta property="og:type" content="website" />
 
@@ -824,6 +824,224 @@
       gap: 8px;
       font-size: 0.78rem;
     }
+    /* ── Season diary / app preview ────────────────────────── */
+    .diary { background: var(--grey-100); }
+
+    .diary-layout {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 48px;
+      align-items: start;
+      margin-top: 48px;
+    }
+
+    @media (max-width: 800px) {
+      .diary-layout { grid-template-columns: 1fr; gap: 32px; }
+    }
+
+    .diary-phone {
+      background: #1a1a2e;
+      border-radius: 32px;
+      padding: 12px;
+      border: 3px solid rgba(255,255,255,.12);
+      max-width: 300px;
+      margin: 0 auto;
+    }
+
+    .diary-screen {
+      background: #f7f8fa;
+      border-radius: 22px;
+      overflow: hidden;
+    }
+
+    .diary-topbar {
+      background: var(--green-800);
+      padding: 12px 14px 10px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .diary-topbar-title {
+      color: white;
+      font-weight: 800;
+      font-size: 0.85rem;
+    }
+
+    .diary-topbar-badge {
+      font-size: 0.6rem;
+      background: #86efac;
+      color: #14532d;
+      padding: 2px 7px;
+      border-radius: 8px;
+      font-weight: 700;
+    }
+
+    .diary-body { padding: 10px 12px 14px; }
+
+    .diary-crop-header {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 10px;
+    }
+
+    .diary-crop-emoji { font-size: 1.6rem; }
+
+    .diary-crop-name {
+      font-weight: 800;
+      font-size: 0.9rem;
+      color: var(--grey-900);
+    }
+
+    .diary-crop-sub {
+      font-size: 0.65rem;
+      color: #9ca3af;
+    }
+
+    .diary-gdd-bar {
+      background: #e5e7eb;
+      border-radius: 6px;
+      height: 8px;
+      margin-bottom: 4px;
+      overflow: hidden;
+    }
+
+    .diary-gdd-fill {
+      background: var(--green-700);
+      height: 100%;
+      border-radius: 6px;
+    }
+
+    .diary-gdd-meta {
+      display: flex;
+      justify-content: space-between;
+      font-size: 0.6rem;
+      color: #9ca3af;
+      margin-bottom: 12px;
+    }
+
+    .diary-events { margin-bottom: 10px; }
+
+    .diary-event {
+      display: flex;
+      gap: 8px;
+      align-items: flex-start;
+      margin-bottom: 7px;
+      position: relative;
+    }
+
+    .diary-event:not(:last-child)::before {
+      content: '';
+      position: absolute;
+      left: 11px;
+      top: 20px;
+      bottom: -7px;
+      width: 2px;
+      background: #e5e7eb;
+    }
+
+    .diary-event-dot {
+      width: 22px;
+      height: 22px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 0.65rem;
+      flex-shrink: 0;
+      margin-top: 1px;
+    }
+
+    .diary-event-dot.done  { background: #dcfce7; color: var(--green-800); font-weight: 900; }
+    .diary-event-dot.today { background: var(--green-800); color: white; font-weight: 900; }
+    .diary-event-dot.future{ background: #f3f4f6; color: #9ca3af; }
+
+    .diary-event-content { flex: 1; }
+
+    .diary-event-label {
+      font-size: 0.7rem;
+      font-weight: 700;
+      color: var(--grey-900);
+      line-height: 1.3;
+    }
+
+    .diary-event-label.future { color: #9ca3af; }
+
+    .diary-event-date {
+      font-size: 0.6rem;
+      color: #9ca3af;
+      margin-top: 1px;
+    }
+
+    .diary-event-sow-note {
+      font-size: 0.6rem;
+      color: var(--green-700);
+      font-weight: 600;
+      margin-top: 1px;
+    }
+
+    .diary-advice {
+      background: var(--green-800);
+      border-radius: 10px;
+      padding: 10px;
+      margin-top: 10px;
+    }
+
+    .diary-advice-title {
+      font-size: 0.65rem;
+      font-weight: 800;
+      color: white;
+      margin-bottom: 6px;
+    }
+
+    .diary-advice-row {
+      display: flex;
+      gap: 5px;
+      margin-bottom: 4px;
+    }
+
+    .diary-advice-num {
+      font-size: 0.55rem;
+      font-weight: 800;
+      color: #86efac;
+      flex-shrink: 0;
+      padding-top: 1px;
+    }
+
+    .diary-advice-text {
+      font-size: 0.58rem;
+      color: rgba(255,255,255,.9);
+      line-height: 1.4;
+    }
+
+    /* Right-hand explanation list */
+    .diary-points { list-style: none; }
+
+    .diary-point {
+      display: flex;
+      gap: 16px;
+      margin-bottom: 28px;
+      align-items: flex-start;
+    }
+
+    .diary-point-icon {
+      font-size: 1.6rem;
+      flex-shrink: 0;
+      margin-top: 2px;
+    }
+
+    .diary-point h3 {
+      font-size: 1rem;
+      font-weight: 700;
+      margin-bottom: 4px;
+    }
+
+    .diary-point p {
+      font-size: 0.88rem;
+      color: var(--grey-600);
+      line-height: 1.6;
+    }
   </style>
 </head>
 <body>
@@ -852,7 +1070,7 @@
       <a href="#kits" class="btn btn-primary btn-lg">See the kits →</a>
       <a href="#how-it-works" class="btn btn-secondary btn-lg" style="color:white;background:rgba(255,255,255,.15);border:1.5px solid rgba(255,255,255,.3)">How it works</a>
     </div>
-    <p class="hero-proof">From £99 one-off · £4.99/month · No gateway required · Works with Ecowitt WS69</p>
+    <p class="hero-proof">From £199 one-off · £4.99/month · No gateway required · Works with Ecowitt sensors</p>
 
     <!-- Phone mockup -->
     <div class="hero-mockup">
@@ -904,23 +1122,23 @@
 <section class="how" id="how-it-works">
   <div class="container">
     <div class="section-label">Simple setup</div>
-    <h2 class="section-title">Garden to phone in 5 minutes</h2>
-    <p class="section-body">No command lines, no config files. Your kit ships pre-provisioned. The app walks you through everything.</p>
+    <h2 class="section-title">Garden to phone in under 10 minutes</h2>
+    <p class="section-body">No command lines, no config files, no engineer required. Your kit arrives ready to go.</p>
     <div class="steps">
       <div class="step-card">
         <div class="step-num">1</div>
-        <h3>Box arrives</h3>
-        <p>Hub, sensors, and a single QR card. Everything is pre-configured at packing time — no setup required.</p>
+        <h3>Plug in the hub</h3>
+        <p>Connect the USB-C cable. The hub creates its own Wi-Fi hotspot called SowNow-XXXX. Connect your phone to it and enter your home Wi-Fi password — takes 60 seconds.</p>
       </div>
       <div class="step-card">
         <div class="step-num">2</div>
-        <h3>Download the app</h3>
-        <p>Scan the QR code. The app links your hub to your account and connects to your home Wi-Fi automatically.</p>
+        <h3>Download the app &amp; scan</h3>
+        <p>Scan the QR card in the box. The app links the hub to your account in one tap.</p>
       </div>
       <div class="step-card">
         <div class="step-num">3</div>
         <h3>Place your sensors</h3>
-        <p>Push soil probes into your beds, clip the greenhouse sensor to a frame. Fully wireless — batteries last 12+ months.</p>
+        <p>Push soil probes into your beds, mount the weather station outside, clip the greenhouse sensor to a frame. Fully wireless — batteries last 12+ months.</p>
       </div>
       <div class="step-card">
         <div class="step-num">4</div>
@@ -940,12 +1158,12 @@
       <div class="feature-card">
         <div class="feature-icon">🌡</div>
         <h3>Your weather, not a postcode guess</h3>
-        <p>We read your Ecowitt WS69 weather station directly via radio — the same temperature your plants actually experience, not an average from 10 miles away.</p>
+        <p>The Ecowitt WS69 station reads the temperature, humidity, wind, rain and UV your plants actually experience — not an average from a station 10 miles away.</p>
       </div>
       <div class="feature-card">
         <div class="feature-icon">💧</div>
         <h3>Per-bed soil moisture</h3>
-        <p>Capacitive sensors in each bed tell you exactly which one needs watering — not a general garden average. No wasted water, no stressed plants.</p>
+        <p>A wireless capacitive probe in each bed tells you exactly which one needs watering — not a general garden average. No wasted water, no stressed plants.</p>
       </div>
       <div class="feature-card">
         <div class="feature-icon">🏡</div>
@@ -964,9 +1182,150 @@
       </div>
       <div class="feature-card">
         <div class="feature-icon">📡</div>
-        <h3>Works without a gateway</h3>
-        <p>The Sow Now hub decodes your Ecowitt station directly using a built-in radio receiver — no Ecowitt gateway, no Ecowitt cloud dependency.</p>
+        <h3>No Ecowitt cloud dependency</h3>
+        <p>The Sow Now hub receives your sensor data directly over radio — your readings go straight to your account. Ecowitt's servers are never in the loop.</p>
       </div>
+    </div>
+  </div>
+</section>
+
+<!-- ── Season diary / app preview ─────────────────────────────────────────── -->
+<section class="diary" id="in-action">
+  <div class="container">
+    <div class="section-label">See it in action</div>
+    <h2 class="section-title">Your season, tracked day by day</h2>
+    <p class="section-body">Sow Now keeps a running diary for every crop — logging each milestone against real GDD data from your garden. No more guessing whether your timing was right.</p>
+
+    <div class="diary-layout">
+
+      <!-- Phone mockup -->
+      <div class="diary-phone">
+        <div class="diary-screen">
+          <div class="diary-topbar">
+            <div class="diary-topbar-title">🍅 Tomato — Gardener's Delight</div>
+            <div class="diary-topbar-badge">● Live</div>
+          </div>
+          <div class="diary-body">
+
+            <!-- GDD progress -->
+            <div style="margin-bottom:12px">
+              <div class="diary-gdd-bar">
+                <div class="diary-gdd-fill" style="width:54%"></div>
+              </div>
+              <div class="diary-gdd-meta">
+                <span>648 GDD accumulated</span>
+                <span>54% · harvest ~Aug 12</span>
+              </div>
+            </div>
+
+            <!-- Timeline -->
+            <div class="diary-events">
+
+              <div class="diary-event">
+                <div class="diary-event-dot done">✓</div>
+                <div class="diary-event-content">
+                  <div class="diary-event-label">Seeds sown indoors</div>
+                  <div class="diary-event-date">14 Mar · 0 GDD · 🪴 South windowsill, 19°C</div>
+                  <div class="diary-event-sow-note">Indoor GDD tracking started</div>
+                </div>
+              </div>
+
+              <div class="diary-event">
+                <div class="diary-event-dot done">✓</div>
+                <div class="diary-event-content">
+                  <div class="diary-event-label">Germination confirmed</div>
+                  <div class="diary-event-date">22 Mar · 72 GDD indoors · 8 days</div>
+                </div>
+              </div>
+
+              <div class="diary-event">
+                <div class="diary-event-dot done">✓</div>
+                <div class="diary-event-content">
+                  <div class="diary-event-label">Moved to greenhouse</div>
+                  <div class="diary-event-date">18 Apr · 210 GDD · Greenhouse temp 16°C</div>
+                  <div class="diary-event-sow-note">🏡 GDD tracking switched to greenhouse zone</div>
+                </div>
+              </div>
+
+              <div class="diary-event">
+                <div class="diary-event-dot done">✓</div>
+                <div class="diary-event-content">
+                  <div class="diary-event-label">Hardening off started</div>
+                  <div class="diary-event-date">12 May · 410 GDD · Sow Now advised</div>
+                </div>
+              </div>
+
+              <div class="diary-event">
+                <div class="diary-event-dot today">→</div>
+                <div class="diary-event-content">
+                  <div class="diary-event-label">Transplanted to Bed 2</div>
+                  <div class="diary-event-date">3 Jun · 648 GDD · Today</div>
+                </div>
+              </div>
+
+              <div class="diary-event">
+                <div class="diary-event-dot future">○</div>
+                <div class="diary-event-content">
+                  <div class="diary-event-label future">First harvest expected</div>
+                  <div class="diary-event-date">~12 Aug · 1,200 GDD target</div>
+                </div>
+              </div>
+
+            </div>
+
+            <!-- Today's advice -->
+            <div class="diary-advice">
+              <div class="diary-advice-title">💡 Today's advice</div>
+              <div class="diary-advice-row">
+                <span class="diary-advice-num">1.</span>
+                <span class="diary-advice-text">Water Bed 2 — soil moisture at 26%, below the 35% threshold for tomatoes.</span>
+              </div>
+              <div class="diary-advice-row">
+                <span class="diary-advice-num">2.</span>
+                <span class="diary-advice-text">Stake plants now — they've put on ~15 cm since transplant and wind today is 4.2 m/s.</span>
+              </div>
+              <div class="diary-advice-row">
+                <span class="diary-advice-num">3.</span>
+                <span class="diary-advice-text">Remove side shoots below first truss — plant is at the right GDD stage.</span>
+              </div>
+            </div>
+
+          </div>
+        </div>
+      </div>
+
+      <!-- Explanation points -->
+      <ul class="diary-points">
+        <li class="diary-point">
+          <div class="diary-point-icon">📅</div>
+          <div>
+            <h3>Every milestone, timestamped in GDD</h3>
+            <p>When you tap "Germination confirmed" or "Moved to greenhouse", Sow Now logs the date and the exact GDD your garden had accumulated. Next season you'll know exactly what conditions produced your best results.</p>
+          </div>
+        </li>
+        <li class="diary-point">
+          <div class="diary-point-icon">🏡</div>
+          <div>
+            <h3>Greenhouse vs garden — tracked separately</h3>
+            <p>Your greenhouse accumulates heat faster than the open garden. Sow Now tracks both and tells you when your greenhouse-grown seedlings have actually hit the GDD threshold to move outside safely — not just a calendar date.</p>
+          </div>
+        </li>
+        <li class="diary-point">
+          <div class="diary-point-icon">💡</div>
+          <div>
+            <h3>Advice triggered by your data, not a schedule</h3>
+            <p>Today's three actions are generated from your live sensor readings — soil moisture, accumulated GDD, wind speed, and what stage your crops are at. Not a generic growing calendar.</p>
+          </div>
+        </li>
+        <li class="diary-point">
+          <div class="diary-point-icon">🎯</div>
+          <div>
+            <h3>Harvest date that updates daily</h3>
+            <p>Based on GDD accumulated so far and your crop's target, the predicted harvest date adjusts every day as your weather changes. A cold spell pushes it out. A warm week pulls it in.</p>
+          </div>
+        </li>
+      </ul>
+
     </div>
   </div>
 </section>
@@ -1011,65 +1370,68 @@
     <h2 class="section-title">One-off purchase. Subscription unlocks the intelligence.</h2>
     <p class="section-body">The kit is yours forever. The subscription pays for daily AI advice, push alerts, and unlimited crop tracking. Cancel anytime.</p>
     <div class="kits-grid">
+
       <div class="kit-card">
         <div class="kit-header">
           <div class="kit-name">Starter Kit</div>
-          <div class="kit-price"><sup>£</sup>99</div>
+          <div class="kit-price"><sup>£</sup>199</div>
         </div>
         <div class="kit-body">
           <div class="kit-includes">What's in the box</div>
           <ul class="kit-items">
-            <li>Pre-provisioned Sow Now Hub</li>
-            <li>RTL-SDR 433 MHz receiver (built-in)</li>
-            <li>LoRa HAT for sensor nodes (built-in)</li>
-            <li>2 × soil moisture sensor nodes</li>
-            <li>1 × greenhouse temperature node</li>
-            <li>USB-C power cable</li>
-            <li>QR setup card</li>
+            <li>Sow Now Hub (pre-provisioned)</li>
+            <li>Ecowitt WS69 outdoor weather station</li>
+            <li>1 × Ecowitt WH51 soil moisture sensor</li>
+            <li>1 × Ecowitt WH31 greenhouse sensor</li>
+            <li>USB-C power cable + QR setup card</li>
+            <li>3 months Grower free</li>
           </ul>
           <a href="https://app.sow-now.uk" class="btn btn-secondary" style="width:100%;display:flex">Order now</a>
-          <div class="kit-sub-note">Subscription from £4.99/month after 3-month free trial</div>
+          <div class="kit-sub-note">Then £4.99/month · cancel anytime</div>
         </div>
       </div>
 
       <div class="kit-card featured">
         <div class="kit-header">
           <div class="kit-popular">Most popular</div>
-          <div class="kit-name" style="color:white">Full Garden Kit</div>
-          <div class="kit-price"><sup>£</sup>129</div>
+          <div class="kit-name" style="color:white">Garden Kit</div>
+          <div class="kit-price"><sup>£</sup>229</div>
         </div>
         <div class="kit-body">
           <div class="kit-includes">What's in the box</div>
           <ul class="kit-items">
-            <li>Everything in Starter Kit</li>
-            <li>4 × soil moisture sensor nodes</li>
-            <li>Covers up to 4 separate beds</li>
-            <li>Ideal for allotment plots</li>
-            <li>Additional nodes available (£18 each)</li>
+            <li>Sow Now Hub (pre-provisioned)</li>
+            <li>Ecowitt WS69 outdoor weather station</li>
+            <li>2 × Ecowitt WH51 soil moisture sensors</li>
+            <li>1 × Ecowitt WH31 greenhouse sensor</li>
+            <li>USB-C power cable + QR setup card</li>
+            <li>3 months Grower free</li>
           </ul>
           <a href="https://app.sow-now.uk" class="btn btn-primary" style="width:100%;display:flex">Order now →</a>
-          <div class="kit-sub-note">Subscription from £4.99/month after 3-month free trial</div>
+          <div class="kit-sub-note">Then £4.99/month · cancel anytime</div>
         </div>
       </div>
 
       <div class="kit-card">
         <div class="kit-header">
-          <div class="kit-name">Already have WS69?</div>
-          <div class="kit-price"><sup>£</sup>0</div>
+          <div class="kit-name">Allotment Kit</div>
+          <div class="kit-price"><sup>£</sup>279</div>
         </div>
         <div class="kit-body">
-          <div class="kit-includes">Try before you buy</div>
+          <div class="kit-includes">What's in the box</div>
           <ul class="kit-items">
-            <li>Download the app free</li>
-            <li>Connect your existing WS69</li>
-            <li>See live GDD data immediately</li>
-            <li>Upgrade to full kit anytime</li>
-            <li>Seed tier: basic data, weekly advice</li>
+            <li>Sow Now Hub (pre-provisioned)</li>
+            <li>Ecowitt WS69 outdoor weather station</li>
+            <li>4 × Ecowitt WH51 soil moisture sensors</li>
+            <li>1 × Ecowitt WH31 greenhouse sensor</li>
+            <li>USB-C power cable + QR setup card</li>
+            <li>3 months Grower free</li>
           </ul>
-          <a href="https://app.sow-now.uk" class="btn btn-secondary" style="width:100%;display:flex">Try free →</a>
-          <div class="kit-sub-note">No credit card required for free tier</div>
+          <a href="https://app.sow-now.uk" class="btn btn-secondary" style="width:100%;display:flex">Order now</a>
+          <div class="kit-sub-note">Extra soil sensors £29 each · Then £4.99/month</div>
         </div>
       </div>
+
     </div>
   </div>
 </section>
@@ -1153,7 +1515,7 @@
     <h2>Your best growing season starts now.</h2>
     <p>Order before May 31st and get 6 months Grower free instead of 3. Limited first batch.</p>
     <div style="display:flex;gap:12px;justify-content:center;flex-wrap:wrap">
-      <a href="https://app.sow-now.uk" class="btn btn-primary btn-lg">Order Full Garden Kit — £129</a>
+      <a href="https://app.sow-now.uk" class="btn btn-primary btn-lg">Order Garden Kit — £229</a>
       <a href="https://app.sow-now.uk" class="btn btn-secondary btn-lg" style="border-color:rgba(255,255,255,.3);color:white;background:transparent">Try free first</a>
     </div>
   </div>
@@ -1169,23 +1531,23 @@
     <div class="faq-list">
       <details>
         <summary>Do I need to buy a separate Ecowitt gateway?</summary>
-        <div class="faq-answer">No — this is one of the key differences with Sow Now. The hub contains a built-in radio receiver that reads your Ecowitt WS69 directly on 433 MHz. You don't need the Ecowitt GW1000 gateway, and your data never goes through Ecowitt's servers.</div>
+        <div class="faq-answer">No — the Sow Now hub contains a built-in radio receiver that reads your Ecowitt sensors directly over 868 MHz. No Ecowitt gateway needed, and your data never touches Ecowitt's servers.</div>
       </details>
       <details>
         <summary>Does it work with other weather stations?</summary>
-        <div class="faq-answer">Currently optimised for the Ecowitt WS69 and the broader Fine Offset sensor family (WS68, WS80). Support for additional stations is on the roadmap. If you already own a compatible station, you can try the free tier immediately.</div>
+        <div class="faq-answer">Currently optimised for the Ecowitt WS69, WH51, and WH31 — all part of the Fine Offset sensor family. Support for additional Fine Offset compatible stations is on the roadmap.</div>
       </details>
       <details>
         <summary>What happens if my broadband goes down?</summary>
         <div class="faq-answer">The Sow Now hub stores up to 30 days of sensor readings locally. When your connection returns, all readings are automatically uploaded — no data is lost. Your app will show "Hub last seen X hours ago" if the hub goes offline.</div>
       </details>
       <details>
-        <summary>How long do the sensor node batteries last?</summary>
-        <div class="faq-answer">The soil moisture and greenhouse nodes run on 2× AA batteries and transmit every 30 minutes. At this interval you can expect 12–18 months of battery life. The app notifies you when a node drops below 15%.</div>
+        <summary>How long do the sensor batteries last?</summary>
+        <div class="faq-answer">The Ecowitt WH51 soil sensors and WH31 greenhouse sensor run on AA batteries. At a 48-second transmission interval you can expect 12–18 months of battery life. The app notifies you when a sensor drops below 15%.</div>
       </details>
       <details>
         <summary>How far can the sensors be from the hub?</summary>
-        <div class="faq-answer">The Ecowitt WS69 transmits on standard 433 MHz — effective range through walls is typically 50–100 m. The soil and greenhouse LoRa nodes have a much longer range — 100–300 m through walls and soil. Most garden installations are well within range with the hub on a windowsill.</div>
+        <div class="faq-answer">The Ecowitt sensors transmit on 868 MHz with a quoted range of 100 m in open field. Through walls and fences real-world range is typically 30–60 m — more than enough for most gardens. Place the hub on a windowsill facing the garden for best results.</div>
       </details>
       <details>
         <summary>Is my data private?</summary>

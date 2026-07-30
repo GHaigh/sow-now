@@ -2,14 +2,15 @@
 Description=Sow Now Pi Agent — sensor data collector and uplink
 After=network-online.target
 Wants=network-online.target
+# Don't start until portal has exited (i.e. WiFi is configured)
+After=sow-now-portal.service
 
 [Service]
 Type=simple
-User=vernal
-Group=vernal
+User=sownow
+Group=sownow
 WorkingDirectory=/opt/sow-now-agent
 
-# Run the agent using the virtual environment Python
 ExecStart=/opt/sow-now-agent/venv/bin/python3 -m agent.main
 
 # Restart automatically on any non-zero exit
@@ -22,18 +23,15 @@ StartLimitBurst=5
 NoNewPrivileges=true
 ProtectSystem=strict
 ProtectHome=true
-ReadWritePaths=/var/lib/vernal
-ReadOnlyPaths=/etc/vernal
+ReadWritePaths=/var/lib/sow-now
+ReadOnlyPaths=/etc/sow-now
 PrivateTmp=true
-PrivateDevices=false   # false — needs access to USB RTL-SDR device and SPI
+PrivateDevices=false   # false — needs access to USB RTL-SDR device
 
-# Environment
 Environment=PYTHONUNBUFFERED=1
-
-# Log to journal (accessible via journalctl -u vernal-agent)
 StandardOutput=journal
 StandardError=journal
-SyslogIdentifier=vernal-agent
+SyslogIdentifier=sow-now-agent
 
 [Install]
 WantedBy=multi-user.target

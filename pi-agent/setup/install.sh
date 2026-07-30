@@ -7,14 +7,13 @@
 #
 # What this does:
 #   1. Updates system packages
-#   2. Installs rtl_433, Python 3.11, required system libs
+#   2. Installs rtl_433, Python 3.11, hostapd, dnsmasq, required system libs
 #   3. Creates the sownow user and directories
-#   4. Installs Python dependencies into a venv
-#   5. Copies systemd service files
-#   6. Enables SPI interface
-#   7. Hardens SSH (key auth only, no passwords)
-#   8. Enables ufw firewall (outbound HTTPS only)
-#   9. Enables automatic security updates
+#   4. Installs Python agent + portal into a venv
+#   5. Copies systemd service files (portal + agent)
+#   6. Hardens SSH (key auth only, no passwords)
+#   7. Enables ufw firewall (outbound HTTPS + DNS only)
+#   8. Enables automatic security updates
 #
 # After running this script:
 #   - Copy /etc/sow-now/config.json.example to /etc/sow-now/config.json
@@ -37,10 +36,17 @@ apt-get install -y -qq \
     python3.11-venv \
     python3-pip \
     libusb-1.0-0 \
+    hostapd \
+    dnsmasq \
+    wireless-tools \
     git \
     ufw \
     unattended-upgrades \
     apt-listchanges
+
+# Disable hostapd and dnsmasq default services — we manage them from the portal
+systemctl disable hostapd dnsmasq 2>/dev/null || true
+systemctl stop    hostapd dnsmasq 2>/dev/null || true
 
 # ── 3. Create sownow user and directories ────────────────────────────────────
 if ! id -u sownow &>/dev/null; then
@@ -59,9 +65,10 @@ usermod -aG plugdev sownow
 AGENT_DIR="/opt/sow-now-agent"
 mkdir -p "$AGENT_DIR"
 
-# Copy agent source (expected to be present alongside this script)
+# Copy agent + portal source (expected to be present alongside this script)
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-cp -r "$SCRIPT_DIR/../agent" "$AGENT_DIR/"
+cp -r "$SCRIPT_DIR/../agent"  "$AGENT_DIR/"
+cp -r "$SCRIPT_DIR/../portal" "$AGENT_DIR/"
 cp "$SCRIPT_DIR/../requirements.txt" "$AGENT_DIR/"
 
 # Create venv and install dependencies
@@ -71,23 +78,18 @@ python3.11 -m venv "$AGENT_DIR/venv"
 
 chown -R sownow:sownow "$AGENT_DIR"
 
-# ── 5. Install systemd service ───────────────────────────────────────────────
-cp "$SCRIPT_DIR/sow-now-agent.service" /etc/systemd/system/
+# ── 5. Install systemd services ──────────────────────────────────────────────
+cp "$SCRIPT_DIR/sow-now-portal.service" /etc/systemd/system/
+cp "$SCRIPT_DIR/sow-now-agent.service"  /etc/systemd/system/
 systemctl daemon-reload
-systemctl enable sow-now-agent
+systemctl enable sow-now-portal sow-now-agent
 
-# ── 6. Enable SPI (for LoRa HAT) ────────────────────────────────────────────
-if ! grep -q "^dtparam=spi=on" /boot/firmware/config.txt 2>/dev/null; then
-    echo "dtparam=spi=on" >> /boot/firmware/config.txt
-    echo "SPI enabled — will take effect after reboot"
-fi
-
-# ── 7. Harden SSH ────────────────────────────────────────────────────────────
+# ── 6. Harden SSH ────────────────────────────────────────────────────────────
 sed -i 's/^#\?PasswordAuthentication.*/PasswordAuthentication no/' /etc/ssh/sshd_config
 sed -i 's/^#\?PermitRootLogin.*/PermitRootLogin no/' /etc/ssh/sshd_config
 systemctl reload ssh
 
-# ── 8. Firewall — outbound HTTPS only ────────────────────────────────────────
+# ── 7. Firewall — outbound HTTPS only ────────────────────────────────────────
 ufw --force reset
 ufw default deny incoming
 ufw default allow outgoing
@@ -95,7 +97,7 @@ ufw allow out 443/tcp comment "HTTPS outbound to Cloudflare"
 ufw allow out 53/udp  comment "DNS"
 ufw --force enable
 
-# ── 9. Automatic security updates ────────────────────────────────────────────
+# ── 8. Automatic security updates ────────────────────────────────────────────
 cat > /etc/apt/apt.conf.d/50unattended-upgrades-sownow << 'EOF'
 Unattended-Upgrade::Automatic-Reboot "false";
 Unattended-Upgrade::Automatic-Reboot-Time "03:00";
@@ -106,12 +108,14 @@ cp "$SCRIPT_DIR/config.example.json" /etc/sow-now/config.json.example
 chmod 600 /etc/sow-now/config.json.example
 
 echo ""
-echo "✅ Vernal Pi setup complete."
+echo "✅ Sow Now Pi setup complete."
 echo ""
 echo "Next steps:"
 echo "  1. Add your SSH public key to ~/.ssh/authorized_keys"
 echo "  2. Copy /etc/sow-now/config.json.example to /etc/sow-now/config.json"
 echo "  3. Fill in device_id and device_jwt from the Vernal app QR scan"
-echo "  4. sudo systemctl start sow-now-agent"
-echo "  5. sudo journalctl -u sow-now-agent -f   (to watch logs)"
-echo "  6. Reboot to activate SPI: sudo reboot"
+echo "  4. Reboot — on first boot the captive portal will start automatically:"
+echo "       sudo reboot"
+echo "  5. Connect phone to 'SowNow-XXXX' WiFi and enter home network details"
+echo "  6. Once WiFi is set up, the agent starts automatically"
+echo "  7. Monitor: sudo journalctl -u sow-now-agent -f"
