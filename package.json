@@ -14,9 +14,10 @@
     "test": "npm run test --workspaces --if-present",
     "lint": "npm run lint --workspaces --if-present",
     "typecheck": "npm run typecheck --workspaces --if-present",
-    "db:migrate:local": "wrangler d1 migrations apply vernal-db --local",
-    "db:migrate": "wrangler d1 migrations apply vernal-db --remote",
-    "db:seed:local": "wrangler d1 execute vernal-db --local --file=./scripts/seed.sql",
+    "db:migrate:local": "wrangler d1 migrations apply vernal-db --local --config apps/api/wrangler.jsonc",
+    "db:migrate": "wrangler d1 migrations apply vernal-db --remote --config apps/api/wrangler.jsonc",
+    "db:seed:local": "wrangler d1 execute vernal-db --local --file=./scripts/seed.sql --config apps/api/wrangler.jsonc",
+    "db:seed": "wrangler d1 execute vernal-db --remote --file=./scripts/seed.sql --config apps/api/wrangler.jsonc",
     "cf:setup": "node ./scripts/cf-setup.mjs"
   },
   "devDependencies": {
