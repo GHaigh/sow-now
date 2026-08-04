@@ -8,6 +8,11 @@
   "compatibility_date": "2025-05-01",
   "compatibility_flags": ["nodejs_compat"],
 
+  // ── Top-level vars (production defaults) ──────────────────────────────────
+  "vars": {
+    "ENVIRONMENT": "production"
+  },
+
   "observability": {
     "enabled": true
   },

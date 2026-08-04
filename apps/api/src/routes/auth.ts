@@ -195,7 +195,7 @@ function ukClimateZone(prefix: string): string {
 
 async function sendEmail(email: string, magicUrl: string, env: Env): Promise<void> {
   // In development / if email not configured, log the magic link
-  if (env.ENVIRONMENT !== 'production') {
+  if (!env.ENVIRONMENT || env.ENVIRONMENT !== 'production') {
     console.log(`[DEV] Magic link for ${email}: ${magicUrl}`);
     return;
   }
