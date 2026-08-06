@@ -37,6 +37,8 @@ function SessionCapture() {
   const navigate = useNavigate();
   const [error, setError] = useState<string | null>(null);
 
+  const [verifying, setVerifying] = useState(false);
+
   useEffect(() => {
     // Case 1: API redirected with #session=TOKEN in hash
     const hash = window.location.hash;
@@ -53,6 +55,7 @@ function SessionCapture() {
     const params = new URLSearchParams(window.location.search);
     const token = params.get('token');
     if (token) {
+      setVerifying(true);
       fetch(`${API_BASE}/api/v1/auth/verify?token=${token}`)
         .then(async res => {
           if (!res.ok) {
@@ -64,7 +67,8 @@ function SessionCapture() {
           navigate('/', { replace: true });
           window.location.reload();
         })
-        .catch(() => setError('Something went wrong. Please try again.'));
+        .catch(() => setError('Something went wrong. Please try again.'))
+        .finally(() => setVerifying(false));
     }
   }, [navigate]);
 
@@ -82,7 +86,10 @@ function SessionCapture() {
     );
   }
 
-  return <SplashScreen />;
+  // Only show splash while actively verifying a token
+  if (verifying) return <SplashScreen />;
+
+  return null;
 }
 
 function SplashScreen() {
