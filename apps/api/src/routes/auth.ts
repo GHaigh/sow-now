@@ -97,9 +97,8 @@ async function verifyMagicLink(request: Request, env: Env): Promise<Response> {
     { expirationTtl: SESSION_TTL_S },
   );
 
-  // Redirect to app with session token in URL fragment (never hits server)
-  const redirectUrl = `https://app.sow-now.uk/#session=${sessionToken}`;
-  return Response.redirect(redirectUrl, 302);
+  // Return session token as JSON — client handles navigation
+  return jsonResponse({ ok: true, sessionToken }, 200, request);
 }
 
 // ── POST /api/v1/auth/logout ──────────────────────────────────────────────────

@@ -1,4 +1,5 @@
-const API = 'https://api.sow-now.uk';
+export const API_BASE = 'https://api.sow-now.uk';
+const API = API_BASE;
 
 function authHeaders(): HeadersInit {
   const token = localStorage.getItem('session_token');

@@ -1,4 +1,4 @@
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { BrowserRouter, Routes, Route, Navigate, useNavigate } from 'react-router-dom';
 import { AuthProvider, useAuth } from './context/AuthContext';
 import { OnboardingPage } from './pages/Onboarding';
@@ -9,6 +9,7 @@ import { SensorsPage } from './pages/Sensors';
 import { SettingsPage } from './pages/Settings';
 import { LoginPage } from './pages/Login';
 import { AppShell } from './components/AppShell';
+import { API_BASE } from './lib/api';
 
 function ProtectedRoutes() {
   const { user, loading } = useAuth();
@@ -29,10 +30,15 @@ function ProtectedRoutes() {
   );
 }
 
-// Handles the #session=TOKEN redirect from the magic link verify endpoint
+// Handles both:
+//   ?token=XXX  — magic link query param, calls API to exchange for session
+//   #session=XXX — session hash set by API redirect
 function SessionCapture() {
   const navigate = useNavigate();
+  const [error, setError] = useState<string | null>(null);
+
   useEffect(() => {
+    // Case 1: API redirected with #session=TOKEN in hash
     const hash = window.location.hash;
     if (hash.startsWith('#session=')) {
       const token = hash.slice(9);
@@ -40,9 +46,43 @@ function SessionCapture() {
       window.location.hash = '';
       navigate('/', { replace: true });
       window.location.reload();
+      return;
+    }
+
+    // Case 2: Magic link ?token=XXX query param — call API to verify
+    const params = new URLSearchParams(window.location.search);
+    const token = params.get('token');
+    if (token) {
+      fetch(`${API_BASE}/api/v1/auth/verify?token=${token}`)
+        .then(async res => {
+          if (!res.ok) {
+            setError('Sign-in link has expired or already been used.');
+            return;
+          }
+          const { sessionToken } = await res.json() as { sessionToken: string };
+          localStorage.setItem('session_token', sessionToken);
+          navigate('/', { replace: true });
+          window.location.reload();
+        })
+        .catch(() => setError('Something went wrong. Please try again.'));
     }
   }, [navigate]);
-  return null;
+
+  if (error) {
+    return (
+      <div style={{
+        minHeight: '100dvh', display: 'flex', flexDirection: 'column',
+        alignItems: 'center', justifyContent: 'center', gap: '16px', padding: '24px',
+        background: '#f9fafb',
+      }}>
+        <div style={{ fontSize: '36px' }}>🌱</div>
+        <p style={{ color: '#dc2626', fontSize: '15px', textAlign: 'center', maxWidth: '320px' }}>{error}</p>
+        <a href="/login" style={{ color: '#166534', fontWeight: 600, fontSize: '15px' }}>Back to sign in</a>
+      </div>
+    );
+  }
+
+  return <SplashScreen />;
 }
 
 function SplashScreen() {
