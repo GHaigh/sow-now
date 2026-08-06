@@ -35,9 +35,12 @@ export function jsonResponse(
  * Returns a safe, generic message to the client — never stack traces or
  * internal details.
  */
-export function errorResponse(status: number, message: string): Response {
+export function errorResponse(status: number, message: string, request?: Request): Response {
   return new Response(JSON.stringify({ error: message }), {
     status,
-    headers: { 'Content-Type': 'application/json' },
+    headers: {
+      'Content-Type': 'application/json',
+      ...(request ? corsHeaders(request) : {}),
+    },
   });
 }

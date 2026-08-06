@@ -79,10 +79,10 @@ async function verifyMagicLink(request: Request, env: Env): Promise<Response> {
   const url = new URL(request.url);
   const token = url.searchParams.get('token');
 
-  if (!token) return errorResponse(400, 'Token required');
+  if (!token) return errorResponse(400, 'Token required', request);
 
   const raw = await env.SESSIONS.get(`magic:${token}`);
-  if (!raw) return errorResponse(401, 'Sign-in link has expired or already been used');
+  if (!raw) return errorResponse(401, 'Sign-in link has expired or already been used', request);
 
   const { userId } = JSON.parse(raw) as { userId: string };
 

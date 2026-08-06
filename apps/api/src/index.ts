@@ -83,11 +83,11 @@ export default {
         return handleStripeWebhook(request, env, ctx);
       }
 
-      return errorResponse(404, 'Not found');
+      return errorResponse(404, 'Not found', request);
     } catch (err) {
       // Log full error server-side; return generic message to client
       console.error('Unhandled error:', err);
-      return errorResponse(500, 'Internal server error');
+      return errorResponse(500, 'Internal server error', request);
     }
   },
 
