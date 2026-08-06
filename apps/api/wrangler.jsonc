@@ -35,14 +35,6 @@
     }
   ],
 
-  // ── Email sending (magic links) ────────────────────────────────────────────
-  "send_email": [
-    {
-      "name": "EMAIL",
-      "allowed_sender_addresses": ["hello@sow-now.uk"]
-    }
-  ],
-
   // ── Queue — advice generation jobs ─────────────────────────────────────────
   "queues": {
     "producers": [

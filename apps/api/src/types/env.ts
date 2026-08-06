@@ -10,9 +10,6 @@ export interface Env {
   // ── KV ──────────────────────────────────────────────────────────────────
   SESSIONS: KVNamespace;
 
-  // ── Email sending ────────────────────────────────────────────────────────
-  EMAIL: SendEmail;
-
   // ── Queues ───────────────────────────────────────────────────────────────
   ADVICE_QUEUE: Queue;
 
@@ -26,6 +23,7 @@ export interface Env {
   CROP_INDEX: VectorizeIndex;
 
   // ── Secrets (set via wrangler secret put) ────────────────────────────────
+  RESEND_API_KEY: string;
   DEVICE_JWT_SECRET: string;
   VAPID_PUBLIC_KEY: string;
   VAPID_PRIVATE_KEY: string;

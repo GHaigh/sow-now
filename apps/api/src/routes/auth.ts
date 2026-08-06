@@ -240,17 +240,33 @@ async function sendEmail(email: string, magicUrl: string, env: Env): Promise<voi
 
   const text = `Sign in to Sow Now\n\nClick this link to sign in (expires in 15 minutes):\n\n${magicUrl}\n\nIf you didn't request this, ignore this email.`;
 
+  if (!env.RESEND_API_KEY) {
+    console.error('Email send failed: RESEND_API_KEY secret not set');
+    return;
+  }
+
   try {
-    await env.EMAIL.send({
-      to: email,
-      from: { email: 'hello@sow-now.uk', name: 'Sow Now' },
-      subject: 'Your Sow Now sign-in link',
-      html,
-      text,
+    const res = await fetch('https://api.resend.com/emails', {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${env.RESEND_API_KEY}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        from: 'Sow Now <hello@sow-now.uk>',
+        to: [email],
+        subject: 'Your Sow Now sign-in link',
+        html,
+        text,
+      }),
     });
+    if (!res.ok) {
+      const body = await res.text();
+      console.error('Email send failed:', res.status, body);
+    }
   } catch (err: any) {
     // Log server-side only — do not expose delivery errors to client
-    console.error('Email send failed:', err?.code, err?.message);
+    console.error('Email send failed:', err?.message);
   }
 }
 
