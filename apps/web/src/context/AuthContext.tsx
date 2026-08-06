@@ -25,10 +25,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     const token = localStorage.getItem('session_token');
     if (!token) { setLoading(false); return; }
-    apiFetch<User>('/api/v1/me')
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), 5000);
+    apiFetch<User>('/api/v1/me', { signal: controller.signal })
       .then(setUser)
       .catch(() => localStorage.removeItem('session_token'))
-      .finally(() => setLoading(false));
+      .finally(() => { clearTimeout(timeout); setLoading(false); });
   }, []);
 
   const login = async (email: string) => {
