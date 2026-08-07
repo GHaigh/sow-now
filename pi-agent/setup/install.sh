@@ -98,10 +98,11 @@ sed -i 's/^#\?PasswordAuthentication.*/PasswordAuthentication no/' /etc/ssh/sshd
 sed -i 's/^#\?PermitRootLogin.*/PermitRootLogin no/' /etc/ssh/sshd_config
 systemctl reload ssh
 
-# ── 7. Firewall — outbound HTTPS only ────────────────────────────────────────
+# ── 7. Firewall ───────────────────────────────────────────────────────────────
 ufw --force reset
 ufw default deny incoming
 ufw default allow outgoing
+ufw allow in  22/tcp  comment "SSH"
 ufw allow out 443/tcp comment "HTTPS outbound to Cloudflare"
 ufw allow out 53/udp  comment "DNS"
 ufw --force enable
