@@ -4,6 +4,6 @@
   "ingest_url":       "https://api.sow-now.uk/api/v1/ingest",
   "db_path":          "/var/lib/sow-now/readings.db",
   "upload_interval_s": 300,
- are   "rtl433_cmd":       "/usr/local/bin/rtl_433",
+  "rtl433_cmd":       "/usr/local/bin/rtl_433",
   "ws_frequency_hz":  868000000
 }
