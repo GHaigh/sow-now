@@ -31,7 +31,6 @@ apt-get upgrade -y -qq
 # ── 2. Install dependencies ──────────────────────────────────────────────────
 apt-get install -y -qq \
     rtl-sdr \
-    rtl433 \
     python3.11 \
     python3.11-venv \
     python3-pip \
@@ -40,9 +39,19 @@ apt-get install -y -qq \
     dnsmasq \
     wireless-tools \
     git \
+    curl \
+    unzip \
     ufw \
     unattended-upgrades \
     apt-listchanges
+
+# ── 3. Install rtl_433 from official GitHub release (armhf) ──────────────────
+RTL433_VERSION="25.12"
+RTL433_URL="https://github.com/merbanan/rtl_433/releases/download/${RTL433_VERSION}/rtl_433-rtlsdr-openssl3-Linux-armhf-${RTL433_VERSION}.zip"
+curl -fsSL "$RTL433_URL" -o /tmp/rtl433.zip
+unzip -q /tmp/rtl433.zip -d /tmp/rtl433
+install -m 755 /tmp/rtl433/rtl_433 /usr/local/bin/rtl_433
+rm -rf /tmp/rtl433 /tmp/rtl433.zip
 
 # Disable hostapd and dnsmasq default services — we manage them from the portal
 systemctl disable hostapd dnsmasq 2>/dev/null || true
