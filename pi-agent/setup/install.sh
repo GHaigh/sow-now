@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # Vernal Pi Zero 2W — first-boot setup script
-# Run as root on a fresh Raspberry Pi OS Lite 64-bit image.
+# Run as root on a fresh Raspberry Pi OS Lite 32-bit image.
 #
 # Usage:
 #   sudo bash setup/install.sh

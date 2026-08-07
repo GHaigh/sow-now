@@ -48,7 +48,7 @@ All sensors transmit at **868 MHz** (EU/UK ISM band) and are decoded by `rtl_433
 
 ### 1. Flash the OS
 
-Flash **Raspberry Pi OS Lite 64-bit (Bookworm)** using Raspberry Pi Imager.
+Flash **Raspberry Pi OS Lite 32-bit (Bookworm)** using Raspberry Pi Imager.
 
 Enable SSH and set a hostname (`sow-now-hub`) in the Imager advanced settings.
 Add your SSH public key in the Imager settings — this is the only SSH access method
