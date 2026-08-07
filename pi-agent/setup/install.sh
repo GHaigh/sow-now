@@ -45,13 +45,22 @@ apt-get install -y -qq \
     unattended-upgrades \
     apt-listchanges
 
-# ── 3. Install rtl_433 from official GitHub release (armhf) ──────────────────
+# ── 3. Install rtl_433 from source (armv6 compatible) ────────────────────────
+apt-get install -y -qq \
+    cmake \
+    libusb-1.0-0-dev \
+    librtlsdr-dev \
+    build-essential
+
 RTL433_VERSION="25.12"
-RTL433_URL="https://github.com/merbanan/rtl_433/releases/download/${RTL433_VERSION}/rtl_433-rtlsdr-openssl3-Linux-armhf-${RTL433_VERSION}.zip"
-curl -fsSL "$RTL433_URL" -o /tmp/rtl433.zip
-unzip -q /tmp/rtl433.zip -d /tmp/rtl433
-install -m 755 /tmp/rtl433/rtl_433 /usr/local/bin/rtl_433
-rm -rf /tmp/rtl433 /tmp/rtl433.zip
+curl -fsSL "https://github.com/merbanan/rtl_433/archive/refs/tags/${RTL433_VERSION}.tar.gz" -o /tmp/rtl433.tar.gz
+tar -xf /tmp/rtl433.tar.gz -C /tmp
+cmake -S /tmp/rtl_433-${RTL433_VERSION} -B /tmp/rtl433-build \
+    -DCMAKE_BUILD_TYPE=Release \
+    -DCMAKE_INSTALL_PREFIX=/usr/local
+cmake --build /tmp/rtl433-build --parallel 2
+cmake --install /tmp/rtl433-build
+rm -rf /tmp/rtl433.tar.gz /tmp/rtl_433-${RTL433_VERSION} /tmp/rtl433-build
 
 # Disable hostapd and dnsmasq default services — we manage them from the portal
 systemctl disable hostapd dnsmasq 2>/dev/null || true
