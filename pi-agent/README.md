@@ -10,7 +10,7 @@ Cloudflare.
 
 | Component   | Part                            | Notes                                      |
 |-------------|---------------------------------|--------------------------------------------|
-| Computer    | Raspberry Pi Zero 2W            | Pre-soldered header version                |
+| Computer    | Raspberry Pi Zero W             | Pre-soldered header version                |
 | Storage     | 32 GB Samsung Endurance microSD | Endurance grade — handles constant writes  |
 | RTL-SDR     | Generic RTL2832U dongle         | Receives all Ecowitt sensors on 868 MHz    |
 | OTG adapter | Micro-USB OTG → USB-A           | Required to connect RTL-SDR to the Zero 2W |
