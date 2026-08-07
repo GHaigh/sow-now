@@ -1,66 +1,75 @@
 # Sow Now Pi Agent
 
-Python agent for the Raspberry Pi Zero W/Zero 2W hub. Receives all sensor data
-from Ecowitt wireless sensors via a single RTL-SDR dongle, buffers locally in
-SQLite, and uploads to Cloudflare.
+Python agent for the Raspberry Pi Zero 2W hub. Receives sensor data from Ecowitt
+wireless sensors via an RTL-SDR dongle, buffers locally in SQLite, and uploads to
+Cloudflare.
 
-## First-Boot WiFi Setup (Captive Portal)
+---
 
-On first boot, if no WiFi credentials are configured, the hub automatically
-starts a temporary Wi-Fi hotspot called **`SowNow-XXXX`** (where XXXX is unique
-to each hub).
+## Hardware required per hub
 
-1. Customer plugs in the hub and waits ~30 seconds
-2. They connect their phone to the `SowNow-XXXX` network
-3. A setup page opens automatically at `192.168.4.1`
-4. They pick their home network and enter the password
-5. The hub writes the credentials, kills the hotspot, and joins their home WiFi
-6. The Sow Now agent starts automatically once online
+| Component   | Part                            | Notes                                      |
+|-------------|---------------------------------|--------------------------------------------|
+| Computer    | Raspberry Pi Zero 2W            | Pre-soldered header version                |
+| Storage     | 32 GB Samsung Endurance microSD | Endurance grade — handles constant writes  |
+| RTL-SDR     | Generic RTL2832U dongle         | Receives all Ecowitt sensors on 868 MHz    |
+| OTG adapter | Micro-USB OTG → USB-A           | Required to connect RTL-SDR to the Zero 2W |
+| PSU         | 5 V / 2.5 A USB-C               | Official Pi PSU preferred                  |
 
-The portal is implemented in `portal/portal.py` using stdlib `asyncio` — no
-external Python dependencies. `hostapd` and `dnsmasq` are installed via apt.
+---
 
-> **Note:** The Pi Zero W's CYW43438 chipset does **not** support concurrent
-> AP+STA mode. The portal runs before any WiFi connection is established,
-> which sidesteps this limitation entirely.
+## Supported sensors
 
-## Supported Sensors
+| Sensor                   | Model         | Data                              |
+|--------------------------|---------------|-----------------------------------|
+| Outdoor weather station  | Ecowitt WS69  | Temp, humidity, wind, rain, UV    |
+| Soil moisture            | Ecowitt WH51  | Moisture %, battery               |
+| Temp / humidity          | Ecowitt WH31  | Temp, humidity, battery           |
 
-| Sensor | Model | Data |
-|--------|-------|------|
-| Outdoor weather station | Ecowitt WS69 | Temp, humidity, wind, rain, UV, solar |
-| Soil moisture (per bed) | Ecowitt WH51 | Moisture %, battery |
-| Greenhouse temp/humidity | Ecowitt WH31 | Temp, humidity, battery |
+All sensors transmit at **868 MHz** and are decoded by `rtl_433`.
 
-All sensors transmit at **868 MHz** (EU/UK ISM band) and are decoded by `rtl_433`.
+---
 
-## Hardware Requirements
+## Manufacturing a hub (your job — not the customer's)
 
-| Component | Part | Notes |
-|-----------|------|-------|
-| Computer  | Raspberry Pi Zero 2W | Pre-soldered header version |
-| Storage   | 32 GB Samsung Endurance microSD | Endurance grade for constant writes |
-| RTL-SDR   | Generic RTL2832U dongle | Receives all Ecowitt sensors on 868 MHz |
-| OTG adapter | Micro-USB OTG → USB-A | Required for RTL-SDR on Zero 2W |
-| PSU       | 5 V / 2.5 A USB-C | Official Pi PSU preferred |
+Each hub must be prepared before it goes in the box. Do this once per unit.
 
-## First-Time Setup
+### Step 1 — Generate the device config
 
-### 1. Flash the OS
-
-Flash **Raspberry Pi OS Lite 32-bit (Bookworm)** using Raspberry Pi Imager.
-
-Enable SSH and set a hostname (`sow-now-hub`) in the Imager advanced settings.
-Add your SSH public key in the Imager settings — this is the only SSH access method
-(password auth is disabled by the setup script).
-
-### 2. Boot and SSH in
+On your Mac, from the `vernal` directory:
 
 ```bash
-ssh pi@sow-now-hub.local
+DEVICE_JWT_SECRET=<your_secret> node scripts/manufacture-hub.mjs sn-001
 ```
 
-### 3. Clone repo and run setup
+Replace `sn-001` with the serial for this unit (sn-002, sn-003 etc.).
+
+This inserts the device into the production database and saves a ready-to-use
+`config.json` to `scripts/output/sn-001.config.json`.
+
+> The `DEVICE_JWT_SECRET` is the production secret set in Cloudflare. Store it
+> somewhere safe (password manager). Never commit it.
+
+### Step 2 — Flash the SD card
+
+1. Open **Raspberry Pi Imager**
+2. Choose **Raspberry Pi OS Lite 32-bit (Bookworm)**
+3. Click the ⚙️ advanced settings before writing:
+   - Hostname: `sn-001` (match the serial)
+   - Enable SSH
+   - Add your SSH public key (from `~/.ssh/id_ed25519.pub`)
+   - Do **not** set a password — the setup script disables password auth
+4. Write to the SD card
+
+### Step 3 — Boot and run setup
+
+Insert the SD card, plug in power, wait ~30 seconds, then SSH in:
+
+```bash
+ssh pi@sn-001.local
+```
+
+Install git and clone the repo:
 
 ```bash
 sudo apt-get update && sudo apt-get install -y git
@@ -69,28 +78,42 @@ cd sow-now/pi-agent
 sudo bash setup/install.sh
 ```
 
-### 4. Provision the device
+This takes 3–5 minutes. It installs `rtl_433`, Python, the agent and portal,
+sets up systemd services, hardens SSH, and configures the firewall (SSH stays open).
 
-In the Vernal app, tap **Set up hub** and scan the QR code on the bottom of the hub box.
-The app will POST to the provisioning API and return a device JWT.
+### Step 4 — Copy the config to the Pi
 
-Copy the returned values into `/etc/sow-now/config.json`:
-
-```bash
-sudo cp /etc/sow-now/config.json.example /etc/sow-now/config.json
-sudo nano /etc/sow-now/config.json
-# Fill in device_id and device_jwt from the app
-sudo chmod 600 /etc/sow-now/config.json
-```
-
-### 5. Start the agent
+From your Mac (in the `vernal` directory):
 
 ```bash
-sudo systemctl start sow-now-agent
-sudo journalctl -u sow-now-agent -f
+scp scripts/output/sn-001.config.json pi@sn-001.local:/tmp/config.json
+ssh pi@sn-001.local "sudo mv /tmp/config.json /etc/sow-now/config.json && sudo chmod 600 /etc/sow-now/config.json"
 ```
 
-## Monitoring
+### Step 5 — Reboot
+
+```bash
+ssh pi@sn-001.local "sudo reboot"
+```
+
+The hub is now ready to go in the box.
+
+---
+
+## Customer setup (what the customer does)
+
+1. Plug in the hub and wait ~30 seconds
+2. Connect phone to the `SowNow-XXXX` Wi-Fi hotspot
+3. A setup page opens automatically — enter home Wi-Fi password
+4. Open the Sow Now app and scan the QR code on the box to link the hub to their account
+
+That's it. No command lines, no config files.
+
+---
+
+## Monitoring (for debugging)
+
+SSH into the hub and run:
 
 ```bash
 # Live agent logs
@@ -99,16 +122,18 @@ sudo journalctl -u sow-now-agent -f
 # Check service status
 sudo systemctl status sow-now-agent
 
-# Inspect local SQLite buffer
+# How many readings are queued to upload
 sqlite3 /var/lib/sow-now/readings.db "SELECT COUNT(*) FROM readings WHERE uploaded=0;"
 ```
 
-## OTA Updates
+---
 
-The agent checks for updates nightly via a systemd timer pulling from the main
-branch of the GitHub repo. If files change, services are restarted automatically.
+## OTA updates
 
-To trigger a manual update:
+The agent pulls from the `main` branch nightly and restarts automatically if anything changed.
+
+To trigger a manual update on a hub:
+
 ```bash
 cd /opt/sow-now-agent && git pull && sudo systemctl restart sow-now-agent
 ```
