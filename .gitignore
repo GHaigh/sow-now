@@ -17,6 +17,9 @@ dist/
 !.env.example
 secrets.json
 
+# Manufactured hub configs — contain device JWTs, never commit
+scripts/output/
+
 # OS
 .DS_Store
 Thumbs.db
