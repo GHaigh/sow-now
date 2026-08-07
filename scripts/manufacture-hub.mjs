@@ -106,5 +106,5 @@ console.log(JSON.stringify(config, null, 2));
 console.log('─────────────────────────────────────────────────────────');
 console.log(`\nSaved to: scripts/output/${serial}.config.json`);
 console.log(`\nCopy to the Pi with:`);
-console.log(`  scp scripts/output/${serial}.config.json pi@sow-now-hub.local:/tmp/config.json`);
-console.log(`  ssh pi@sow-now-hub.local "sudo mv /tmp/config.json /etc/sow-now/config.json && sudo chmod 600 /etc/sow-now/config.json"`);
+console.log(`  scp scripts/output/${serial}.config.json pi@${serial}.local:/tmp/config.json`);
+console.log(`  ssh pi@${serial}.local "sudo mv /tmp/config.json /etc/sow-now/config.json && sudo chown sownow:sownow /etc/sow-now/config.json && sudo chmod 600 /etc/sow-now/config.json"`);

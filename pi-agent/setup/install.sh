@@ -115,6 +115,7 @@ EOF
 
 # Copy example config
 cp "$SCRIPT_DIR/config.example.json" /etc/sow-now/config.json.example
+chown sownow:sownow /etc/sow-now/config.json.example
 chmod 600 /etc/sow-now/config.json.example
 
 echo ""
