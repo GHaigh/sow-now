@@ -1,6 +1,6 @@
 # Sow Now Pi Agent
 
-Python agent for the Raspberry Pi Zero 2W hub. Receives sensor data from Ecowitt
+Python agent for the Raspberry Pi Zero W hub. Receives sensor data from Ecowitt
 wireless sensors via an RTL-SDR dongle, buffers locally in SQLite, and uploads to
 Cloudflare.
 
@@ -13,7 +13,7 @@ Cloudflare.
 | Computer    | Raspberry Pi Zero W             | Pre-soldered header version                |
 | Storage     | 32 GB Samsung Endurance microSD | Endurance grade — handles constant writes  |
 | RTL-SDR     | Generic RTL2832U dongle         | Receives all Ecowitt sensors on 868 MHz    |
-| OTG adapter | Micro-USB OTG → USB-A           | Required to connect RTL-SDR to the Zero 2W |
+| OTG adapter | Micro-USB OTG → USB-A           | Required to connect RTL-SDR to the Zero W |
 | PSU         | 5 V / 2.5 A USB-C               | Official Pi PSU preferred                  |
 
 ---
