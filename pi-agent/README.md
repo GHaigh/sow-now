@@ -63,7 +63,7 @@ ssh pi@sow-now-hub.local
 ### 3. Clone repo and run setup
 
 ```bash
-sudo apt-get update -qq && sudo apt-get install -y git
+sudo apt-get update && sudo apt-get install -y git
 git clone https://github.com/GHaigh/sow-now.git
 cd sow-now/pi-agent
 sudo bash setup/install.sh
