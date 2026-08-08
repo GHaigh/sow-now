@@ -81,12 +81,36 @@ async function verifyMagicLink(request: Request, env: Env): Promise<Response> {
 
   if (!token) return errorResponse(400, 'Token required', request);
 
+  // Ignore prefetch requests from email clients / link scanners.
+  // These bots fetch the URL to generate previews or scan for malware —
+  // if we consumed the token here the real user click would fail.
+  const ua = request.headers.get('User-Agent') ?? '';
+  const isPrefetch =
+    request.headers.get('Purpose') === 'prefetch' ||
+    request.headers.get('Sec-Purpose') === 'prefetch' ||
+    request.headers.get('X-Purpose') === 'preview' ||
+    /bot|crawl|spider|preview|prefetch|validator|checker|scanner|slack|twitter|facebook|linkedin|whatsapp|telegram|discord|google|bing|yahoo|baidu|msnbot|facebookexternalhit|twitterbot/i.test(ua);
+
+  if (isPrefetch) {
+    // Return a 200 with no body so the scanner is satisfied but the token
+    // is not consumed. The real browser click will still work.
+    return new Response(null, { status: 200 });
+  }
+
   const raw = await env.SESSIONS.get(`magic:${token}`);
+
+  // Check for a recently-issued session from a previous verify of this same
+  // token (handles double-click / quick retry without the user getting an error).
+  const recentSession = await env.SESSIONS.get(`magic:${token}:session`);
+  if (!raw && recentSession) {
+    return jsonResponse({ ok: true, sessionToken: recentSession }, 200, request);
+  }
+
   if (!raw) return errorResponse(401, 'Sign-in link has expired or already been used', request);
 
   const { userId } = JSON.parse(raw) as { userId: string };
 
-  // Consume the magic link token immediately (one-time use)
+  // Consume the magic link token (one-time use)
   await env.SESSIONS.delete(`magic:${token}`);
 
   // Issue a session token
@@ -96,6 +120,10 @@ async function verifyMagicLink(request: Request, env: Env): Promise<Response> {
     userId,
     { expirationTtl: SESSION_TTL_S },
   );
+
+  // Keep a short-lived back-reference so a quick double-click doesn't break.
+  // 60 s is long enough for any retry; after that the link is truly gone.
+  await env.SESSIONS.put(`magic:${token}:session`, sessionToken, { expirationTtl: 60 });
 
   // Return session token as JSON — client handles navigation
   return jsonResponse({ ok: true, sessionToken }, 200, request);
