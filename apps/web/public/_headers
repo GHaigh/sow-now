@@ -1,0 +1,26 @@
+# Service worker files — never cached, always fresh
+/sw.js
+  Cache-Control: no-cache, no-store, must-revalidate
+  Content-Type: application/javascript; charset=utf-8
+
+/sw-nuke.js
+  Cache-Control: no-cache, no-store, must-revalidate
+  Content-Type: application/javascript; charset=utf-8
+
+# Hashed JS/CSS assets — immutable long-cache
+/assets/*.js
+  Content-Type: application/javascript; charset=utf-8
+  Cache-Control: public, max-age=31536000, immutable
+
+/assets/*.css
+  Content-Type: text/css; charset=utf-8
+  Cache-Control: public, max-age=31536000, immutable
+
+# HTML entry points — always revalidate
+/
+  Cache-Control: no-cache
+  X-Content-Type-Options: nosniff
+
+/index.html
+  Cache-Control: no-cache
+  X-Content-Type-Options: nosniff
