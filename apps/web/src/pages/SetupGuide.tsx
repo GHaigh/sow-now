@@ -75,8 +75,9 @@ const STEPS: Step[] = [
   },
   {
     n: '8',
-    title: 'Select your crops',
-    body: 'Pick everything you\'re growing this season. Sow Now uses this to calculate growing degree days and give you timing advice specific to each crop.',
+    title: 'Plan your crops by variety',
+    body: 'Tap + Add for each crop you\'re growing. Search by variety name — Gardener\'s Delight, Charlotte, Padrón — and the app instantly shows your personalised sow date, when to move to the greenhouse, plant-out date, and expected first harvest based on your garden\'s GDD data. Can\'t find your variety? Add it and it\'ll be shared with the Sow Now community.',
+    tip: 'The more crops you add now, the more useful your daily advice will be from day one.',
   },
   {
     n: '9',
