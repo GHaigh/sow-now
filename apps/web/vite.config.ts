@@ -6,8 +6,13 @@ export default defineConfig({
   plugins: [
     react(),
     VitePWA({
+      // selfDestroying: generates a sw.js that immediately unregisters itself
+      // and clears all caches. This kills any stale SW already installed on
+      // clients that causes "text/html MIME type" errors when old hashed
+      // asset filenames are requested after a redeploy.
+      // Re-enable a proper SW config once the app is stable.
+      selfDestroying: true,
       registerType: 'prompt',
-      includeAssets: ['favicon.ico', 'apple-touch-icon.png'],
       manifest: {
         name: 'Sow Now — Precision Growing',
         short_name: 'Sow Now',
@@ -22,19 +27,6 @@ export default defineConfig({
           { src: '/icons/icon-192.png', sizes: '192x192', type: 'image/png' },
           { src: '/icons/icon-512.png', sizes: '512x512', type: 'image/png' },
           { src: '/icons/icon-512.png', sizes: '512x512', type: 'image/png', purpose: 'maskable' },
-        ],
-      },
-      workbox: {
-        globPatterns: ['**/*.{js,css,html,ico,png,svg}'],
-        runtimeCaching: [
-          {
-            urlPattern: /^https:\/\/api\.sow-now\.uk\//,
-            handler: 'NetworkFirst',
-            options: {
-              cacheName: 'api-cache',
-              expiration: { maxEntries: 50, maxAgeSeconds: 300 },
-            },
-          },
         ],
       },
     }),
