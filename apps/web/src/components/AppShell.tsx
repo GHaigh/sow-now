@@ -1,4 +1,5 @@
 import { NavLink } from 'react-router-dom';
+import { InstallBanner } from './InstallBanner';
 import styles from './AppShell.module.css';
 
 const NAV = [
@@ -12,6 +13,7 @@ const NAV = [
 export function AppShell({ children }: { children: React.ReactNode }) {
   return (
     <div className={styles.shell}>
+      <InstallBanner />
       <main className={styles.main}>{children}</main>
       <nav className={styles.nav}>
         {NAV.map(({ to, icon, label }) => (

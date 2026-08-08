@@ -10,19 +10,22 @@
  *   GET  /api/v1/crops           — user's crop list
  *   POST /api/v1/crops           — add a crop
  *   PATCH /api/v1/crops/:id      — update crop status
+ *   POST /api/v1/sensors/claim/start  — start a sensor claim window
+ *   GET  /api/v1/sensors/claim/:id    — poll for claim result
  *
  * Scheduled (cron 30 5 * * *):
  *   GDD engine + advice generation
  */
 
 import { handleIngest }          from './routes/ingest';
-import { handleProvision }       from './routes/provision';
+import { handleProvision, handleProvisionConfig } from './routes/provision';
 import { handleLiveReadings }    from './routes/live';
 import { handleDashboard }       from './routes/dashboard';
 import { handleAdvice }          from './routes/advice';
 import { handleCrops }           from './routes/crops';
 import { handleAuth, getMe }     from './routes/auth';
 import { handleSensors }         from './routes/sensors';
+import { handleClaimStart, handleClaimPoll, handleCandidates, handleConfirm, handleWH51Candidates, handleWH51Confirm } from './routes/claim';
 import { handleBilling }         from './routes/billing';
 import { handleStripeWebhook }   from './routes/stripe-webhook';
 import { handleAdviceQueue }     from './queue/advice-consumer';
@@ -55,6 +58,9 @@ export default {
       if (path === '/api/v1/provision' && request.method === 'POST') {
         return handleProvision(request, env, ctx);
       }
+      if (path === '/api/v1/provision/config' && request.method === 'GET') {
+        return handleProvisionConfig(request, env, ctx);
+      }
 
       // ── User routes (user session auth) ──────────────────────────────────
       if (path === '/api/v1/readings/live' && request.method === 'GET') {
@@ -71,6 +77,27 @@ export default {
       }
       if (path === '/api/v1/sensors' && request.method === 'GET') {
         return handleSensors(request, env, ctx);
+      }
+      if (path.startsWith('/api/v1/sensors/') && request.method === 'PATCH') {
+        return handleSensors(request, env, ctx);
+      }
+      if (path === '/api/v1/sensors/claim/start' && request.method === 'POST') {
+        return handleClaimStart(request, env, ctx);
+      }
+      if (path === '/api/v1/sensors/claim/candidates' && request.method === 'GET') {
+        return handleCandidates(request, env, ctx);
+      }
+      if (path === '/api/v1/sensors/claim/confirm' && request.method === 'POST') {
+        return handleConfirm(request, env, ctx);
+      }
+      if (path === '/api/v1/sensors/claim/wh51/candidates' && request.method === 'GET') {
+        return handleWH51Candidates(request, env, ctx);
+      }
+      if (path === '/api/v1/sensors/claim/wh51/confirm' && request.method === 'POST') {
+        return handleWH51Confirm(request, env, ctx);
+      }
+      if (path.startsWith('/api/v1/sensors/claim/') && request.method === 'GET') {
+        return handleClaimPoll(request, env, ctx);
       }
 
       // ── Billing routes (user session auth) ───────────────────────────────

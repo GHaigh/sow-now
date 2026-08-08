@@ -43,6 +43,8 @@ class Rtl433Reader:
         cmd = [
             self._config.rtl433_cmd,
             "-f", str(self._config.ws_frequency_hz),
+            "-Y", "classic",                  # use classic demodulator (required for Ecowitt)
+            "-s", "250k",                     # 250k sample rate (required for Ecowitt on rtl_433 25.12+)
             "-F", "json",
             "-M", "utc",
             "-R", "0",                        # disable all decoders first
@@ -60,16 +62,25 @@ class Rtl433Reader:
 
         try:
             assert proc.stdout is not None
-            async for raw_line in proc.stdout:
-                if shutdown.is_set():
+            while not shutdown.is_set():
+                try:
+                    raw_line = await asyncio.wait_for(proc.stdout.readline(), timeout=5.0)
+                except asyncio.TimeoutError:
+                    # No data for 5 seconds — check shutdown flag and retry
+                    continue
+                if not raw_line:
+                    # EOF — rtl_433 exited
                     break
                 line = raw_line.decode("utf-8", errors="replace").strip()
-                if not line:
-                    continue
-                self._parse_and_buffer(line, buffer)
+                if line:
+                    self._parse_and_buffer(line, buffer)
         finally:
             proc.terminate()
-            await proc.wait()
+            try:
+                await asyncio.wait_for(proc.wait(), timeout=3.0)
+            except asyncio.TimeoutError:
+                proc.kill()
+                await proc.wait()
 
     def _parse_and_buffer(self, line: str, buffer: ReadingBuffer) -> None:
         """Parse one JSON line from rtl_433, route to the correct handler."""

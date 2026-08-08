@@ -1,0 +1,162 @@
+.page {
+  max-width: 680px;
+  margin: 0 auto;
+  padding: 0 20px 60px;
+  font-family: -apple-system, "Segoe UI", system-ui, sans-serif;
+  color: #1f2328;
+  line-height: 1.6;
+}
+
+.header {
+  padding: 40px 0 32px;
+  border-bottom: 1px solid #e5e7eb;
+  margin-bottom: 40px;
+}
+
+.logo {
+  font-size: 1.1rem;
+  font-weight: 800;
+  color: #166534;
+  margin-bottom: 16px;
+}
+
+.header h1 {
+  font-size: 2rem;
+  font-weight: 800;
+  letter-spacing: -0.5px;
+  margin-bottom: 8px;
+}
+
+.header p {
+  font-size: 1rem;
+  color: #57606a;
+}
+
+.steps {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+}
+
+.step {
+  display: flex;
+  gap: 20px;
+  padding: 28px 0;
+  border-bottom: 1px solid #f0f0f0;
+}
+
+.stepNum {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: #166534;
+  color: #fff;
+  font-weight: 800;
+  font-size: 0.95rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  margin-top: 2px;
+}
+
+.stepBody {
+  flex: 1;
+}
+
+.stepBody h2 {
+  font-size: 1.1rem;
+  font-weight: 700;
+  margin-bottom: 8px;
+}
+
+.stepBody p {
+  font-size: 0.95rem;
+  color: #374151;
+  margin-bottom: 0;
+}
+
+.substeps {
+  margin: 12px 0 0 0;
+  padding-left: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.substeps li {
+  font-size: 0.9rem;
+  color: #374151;
+}
+
+.tip {
+  margin-top: 12px;
+  background: #f0fdf4;
+  border-radius: 8px;
+  padding: 10px 14px;
+  font-size: 0.88rem;
+  color: #166534;
+}
+
+.section {
+  margin-top: 48px;
+}
+
+.section h2 {
+  font-size: 1.3rem;
+  font-weight: 700;
+  margin-bottom: 20px;
+}
+
+.faqs {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.faq {
+  background: #f7f8fa;
+  border-radius: 10px;
+  padding: 16px 18px;
+}
+
+.faqQ {
+  font-weight: 700;
+  font-size: 0.95rem;
+  margin-bottom: 6px;
+}
+
+.faqA {
+  font-size: 0.9rem;
+  color: #57606a;
+}
+
+.footer {
+  margin-top: 48px;
+  padding-top: 24px;
+  border-top: 1px solid #e5e7eb;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+.footer p {
+  font-size: 0.88rem;
+  color: #57606a;
+}
+
+.footer a {
+  color: #166534;
+}
+
+.appLink {
+  background: #166534;
+  color: #fff !important;
+  padding: 10px 20px;
+  border-radius: 8px;
+  font-weight: 700;
+  font-size: 0.9rem;
+  text-decoration: none;
+}

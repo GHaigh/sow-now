@@ -1,0 +1,33 @@
+[Unit]
+Description=Sow Now — provision poller (waits for QR scan to retrieve device JWT)
+# Runs after WiFi is up, before the agent starts
+After=network-online.target
+Wants=network-online.target
+Before=sow-now-agent.service
+# Only run if not yet provisioned (no device_jwt in config)
+ConditionPathExists=!/etc/sow-now/config.json
+
+[Service]
+Type=oneshot
+# Must run as root to write /etc/sow-now/config.json
+User=root
+WorkingDirectory=/opt/sow-now-agent
+
+ExecStart=/opt/sow-now-agent/venv/bin/python3 -m agent.provision_poller
+
+# Wait up to 70 minutes (1h poll timeout + buffer)
+TimeoutStartSec=4200
+
+RemainAfterExit=yes
+
+# Security
+NoNewPrivileges=true
+PrivateTmp=true
+
+Environment=PYTHONUNBUFFERED=1
+StandardOutput=journal
+StandardError=journal
+SyslogIdentifier=sow-now-provision
+
+[Install]
+WantedBy=multi-user.target

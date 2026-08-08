@@ -9,6 +9,7 @@ export interface Env {
 
   // ── KV ──────────────────────────────────────────────────────────────────
   SESSIONS: KVNamespace;
+  CLAIM_WINDOWS: KVNamespace;
 
   // ── Queues ───────────────────────────────────────────────────────────────
   ADVICE_QUEUE: Queue;

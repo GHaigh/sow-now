@@ -62,6 +62,24 @@ cmake --build /tmp/rtl433-build --parallel 2
 cmake --install /tmp/rtl433-build
 rm -rf /tmp/rtl433.tar.gz /tmp/rtl_433-${RTL433_VERSION} /tmp/rtl433-build
 
+# ── 3b. Blacklist kernel DVB drivers that claim the RTL-SDR dongle ───────────
+# Without this, dvb_usb_rtl28xxu loads on plug-in and prevents rtl_433 from
+# opening the device as an SDR.
+cat > /etc/modprobe.d/rtlsdr-blacklist.conf << 'EOF'
+blacklist dvb_usb_rtl28xxu
+blacklist dvb_usb_v2
+blacklist rtl2832_sdr
+blacklist rtl2832
+EOF
+
+# ── 3c. udev rule — grant userspace access to RTL-SDR dongle ─────────────────
+# Required for rtl_433 to open the device without hanging.
+cat > /etc/udev/rules.d/rtl-sdr.rules << 'EOF'
+SUBSYSTEM=="usb", ATTRS{idVendor}=="0bda", ATTRS{idProduct}=="2832", GROUP="plugdev", MODE="0666", SYMLINK+="rtl_sdr"
+SUBSYSTEM=="usb", ATTRS{idVendor}=="0bda", ATTRS{idProduct}=="2838", GROUP="plugdev", MODE="0666", SYMLINK+="rtl_sdr"
+EOF
+udevadm control --reload-rules
+
 # Disable hostapd and dnsmasq default services — we manage them from the portal
 systemctl disable hostapd dnsmasq 2>/dev/null || true
 systemctl stop    hostapd dnsmasq 2>/dev/null || true
@@ -97,10 +115,11 @@ python3.11 -m venv "$AGENT_DIR/venv"
 chown -R sownow:sownow "$AGENT_DIR"
 
 # ── 5. Install systemd services ──────────────────────────────────────────────
-cp "$SCRIPT_DIR/sow-now-portal.service" /etc/systemd/system/
-cp "$SCRIPT_DIR/sow-now-agent.service"  /etc/systemd/system/
+cp "$SCRIPT_DIR/sow-now-portal.service"    /etc/systemd/system/
+cp "$SCRIPT_DIR/sow-now-provision.service" /etc/systemd/system/
+cp "$SCRIPT_DIR/sow-now-agent.service"     /etc/systemd/system/
 systemctl daemon-reload
-systemctl enable sow-now-portal sow-now-agent
+systemctl enable sow-now-portal sow-now-provision sow-now-agent
 
 # ── 6. Harden SSH ────────────────────────────────────────────────────────────
 sed -i 's/^#\?PasswordAuthentication.*/PasswordAuthentication no/' /etc/ssh/sshd_config
@@ -124,18 +143,31 @@ EOF
 
 # Copy example config
 cp "$SCRIPT_DIR/config.example.json" /etc/sow-now/config.json.example
-chown sownow:sownow /etc/sow-now/config.json.example
+chown root:root /etc/sow-now/config.json.example
 chmod 600 /etc/sow-now/config.json.example
 
 echo ""
 echo "✅ Sow Now Pi setup complete."
 echo ""
-echo "Next steps:"
-echo "  1. Add your SSH public key to ~/.ssh/authorized_keys"
-echo "  2. Copy /etc/sow-now/config.json.example to /etc/sow-now/config.json"
-echo "  3. Fill in device_id and device_jwt from the Vernal app QR scan"
-echo "  4. Reboot — on first boot the captive portal will start automatically:"
-echo "       sudo reboot"
-echo "  5. Connect phone to 'SowNow-XXXX' WiFi and enter home network details"
-echo "  6. Once WiFi is set up, the agent starts automatically"
-echo "  7. Monitor: sudo journalctl -u sow-now-agent -f"
+echo "──────────────────────────────────────────────────────────"
+echo "  MANUFACTURE STEP (run on each unit before boxing):"
+echo ""
+echo "  Write /etc/sow-now/provision.json with the unit's"
+echo "  device_id and provision_token from the Vernal admin panel:"
+echo ""
+echo '  echo '"'"'{"device_id":"dev-sn-XXX","provision_token":"SN-XXXXXXXX"}'"'"' \'
+echo "       > /etc/sow-now/provision.json"
+echo "  chmod 600 /etc/sow-now/provision.json"
+echo ""
+echo "  Then reboot to verify the unit enters the captive portal."
+echo "──────────────────────────────────────────────────────────"
+echo ""
+echo "Customer unboxing flow (automatic after manufacture step):"
+echo "  1. Customer plugs in hub"
+echo "  2. Phone connects to 'SowNow-XXXX' WiFi, enters home network password"
+echo "  3. Hub connects to internet, starts polling for QR scan"
+echo "  4. Customer scans QR in app → JWT delivered to hub automatically"
+echo "  5. Agent starts, sensors appear in app within 5 minutes"
+echo ""
+echo "Monitor: sudo journalctl -u sow-now-provision -f"
+echo "         sudo journalctl -u sow-now-agent -f"

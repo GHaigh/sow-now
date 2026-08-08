@@ -1,10 +1,11 @@
 import { useEffect, useState } from 'react';
 import { apiFetch } from '../lib/api';
+import { ScanSensors } from '../components/ScanSensors';
 import styles from './Sensors.module.css';
 
 interface Sensor {
   id: string;
-  sensor_type: 'weather_station' | 'soil' | 'greenhouse';
+  sensor_type: 'weather_station' | 'soil' | 'greenhouse' | 'indoor';
   name: string;
   battery_pct: number | null;
   last_seen_at: number | null;
@@ -18,19 +19,22 @@ interface DeviceInfo {
   firmware_version: string | null;
 }
 
-const TYPE_ICON = { weather_station: '🌤', soil: '💧', greenhouse: '🏡' };
-const TYPE_LABEL = { weather_station: 'Weather Station', soil: 'Soil Sensor', greenhouse: 'Greenhouse' };
+const TYPE_ICON: Record<string, string> = { weather_station: '🌤', soil: '💧', greenhouse: '🏡', indoor: '🌡' };
+const TYPE_LABEL: Record<string, string> = { weather_station: 'Weather Station', soil: 'Soil Sensor', greenhouse: 'Greenhouse', indoor: 'Indoor Sensor' };
 
 export function SensorsPage() {
   const [device, setDevice] = useState<DeviceInfo | null>(null);
   const [sensors, setSensors] = useState<Sensor[]>([]);
   const [loading, setLoading] = useState(true);
+  const [scanning, setScanning] = useState(false);
 
-  useEffect(() => {
+  const loadSensors = () => {
     apiFetch<{ device: DeviceInfo; sensors: Sensor[] }>('/api/v1/sensors')
       .then(d => { setDevice(d.device); setSensors(d.sensors); })
       .finally(() => setLoading(false));
-  }, []);
+  };
+
+  useEffect(() => { loadSensors(); }, []);
 
   const timeSince = (ts: number | null) => {
     if (!ts) return 'Never';
@@ -39,6 +43,14 @@ export function SensorsPage() {
     if (mins < 60) return `${mins} mins ago`;
     return `${Math.round(mins / 60)} hrs ago`;
   };
+
+  if (scanning) {
+    return (
+      <div style={{ padding: 16 }}>
+        <ScanSensors onDone={() => { setScanning(false); loadSensors(); }} />
+      </div>
+    );
+  }
 
   return (
     <div className={styles.page}>
@@ -109,10 +121,17 @@ export function SensorsPage() {
             ))
           )}
 
-          {/* Help card */}
+          {/* Help card + scan button */}
           <div className={styles.helpCard}>
             <p>💡 <strong>Missing a sensor?</strong> Make sure it's powered on and within 150 m of the hub. Soil nodes transmit every 30 minutes.</p>
           </div>
+          <button
+            className="btn btn-primary"
+            style={{ marginTop: 8 }}
+            onClick={() => setScanning(true)}
+          >
+            + Scan for sensors
+          </button>
         </div>
       )}
     </div>

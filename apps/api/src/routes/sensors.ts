@@ -1,8 +1,10 @@
 /**
  * GET /api/v1/sensors
+ *   Returns the list of sensors for the authenticated user's device,
+ *   along with the device status. Used by the Sensors page and onboarding.
  *
- * Returns the list of sensors for the authenticated user's device,
- * along with the device status. Used by the Sensors page and onboarding.
+ * PATCH /api/v1/sensors/:id
+ *   Rename a sensor. Body: { name: string }
  */
 
 import { jsonResponse, errorResponse } from '../lib/http';
@@ -17,7 +19,32 @@ export async function handleSensors(
   const userId = await getUserIdFromSession(request, env);
   if (!userId) return errorResponse(401, 'Unauthorised');
 
-  // Get user's primary device
+  // ── PATCH /api/v1/sensors/:id — rename ───────────────────────────────────
+  if (request.method === 'PATCH') {
+    const url = new URL(request.url);
+    const sensorId = url.pathname.split('/').pop();
+    if (!sensorId) return errorResponse(400, 'sensor id required');
+
+    let body: { name?: unknown };
+    try {
+      body = await request.json() as { name?: unknown };
+    } catch {
+      return errorResponse(400, 'Invalid JSON');
+    }
+
+    const name = body.name;
+    if (typeof name !== 'string' || name.trim().length === 0) {
+      return errorResponse(400, 'name required');
+    }
+
+    await env.DB.prepare(`
+      UPDATE sensors SET name = ? WHERE id = ? AND user_id = ?
+    `).bind(name.trim(), sensorId, userId).run();
+
+    return jsonResponse({ ok: true }, 200, request);
+  }
+
+  // ── GET /api/v1/sensors ───────────────────────────────────────────────────
   const device = await env.DB.prepare(`
     SELECT id, name, last_seen_at, firmware_version
     FROM devices WHERE user_id = ? LIMIT 1

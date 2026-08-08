@@ -37,6 +37,13 @@ import { verifyDeviceToken } from '../lib/auth';
 import { jsonResponse, errorResponse } from '../lib/http';
 import type { Env } from '../types/env';
 
+interface ClaimWindow {
+  device_id: string;
+  sensor_type: string;
+  created_at: number;
+  claimed_rf_id: string | null;
+}
+
 export async function handleIngest(
   request: Request,
   env: Env,
@@ -100,17 +107,38 @@ export async function handleIngest(
 
     const rfId = r['sensor_rf_id'] as string;
 
-    // Upsert sensor (insert if new RF ID seen for this device)
+    // Upsert sensor (insert if new RF ID seen for this device).
+    // Also update the snapshot columns so the claiming candidates endpoint
+    // can return live reading values without joining the readings table.
     stmts.push(
       env.DB.prepare(`
-        INSERT INTO sensors (id, device_id, user_id, rf_id, sensor_type, last_seen_at)
-        VALUES (lower(hex(randomblob(8))), ?, ?, ?, ?, ?)
+        INSERT INTO sensors (id, device_id, user_id, rf_id, sensor_type, last_seen_at,
+          snap_temp_c, snap_humidity_pct, snap_wind_avg_ms, snap_wind_dir_deg, snap_rain_mm,
+          snap_soil_moisture_pct, snap_soil_temp_c)
+        VALUES (lower(hex(randomblob(8))), ?, ?, ?, ?, ?,
+          ?, ?, ?, ?, ?,
+          ?, ?)
         ON CONFLICT(device_id, rf_id) DO UPDATE SET
-          last_seen_at = excluded.last_seen_at,
-          battery_pct  = COALESCE(?, battery_pct)
+          last_seen_at           = excluded.last_seen_at,
+          battery_pct            = COALESCE(?, battery_pct),
+          snap_temp_c            = COALESCE(excluded.snap_temp_c,            snap_temp_c),
+          snap_humidity_pct      = COALESCE(excluded.snap_humidity_pct,      snap_humidity_pct),
+          snap_wind_avg_ms       = COALESCE(excluded.snap_wind_avg_ms,       snap_wind_avg_ms),
+          snap_wind_dir_deg      = COALESCE(excluded.snap_wind_dir_deg,      snap_wind_dir_deg),
+          snap_rain_mm           = COALESCE(excluded.snap_rain_mm,           snap_rain_mm),
+          snap_soil_moisture_pct = COALESCE(excluded.snap_soil_moisture_pct, snap_soil_moisture_pct),
+          snap_soil_temp_c       = COALESCE(excluded.snap_soil_temp_c,       snap_soil_temp_c)
       `).bind(
         device.id, device.user_id, rfId, sensorType,
         Math.floor(Date.now() / 1000),
+        (r['temp_c'] as number | null) ?? null,
+        (r['humidity_pct'] as number | null) ?? null,
+        (r['wind_avg_ms'] as number | null) ?? null,
+        (r['wind_dir_deg'] as number | null) ?? null,
+        (r['rain_mm'] as number | null) ?? null,
+        (r['soil_moisture_pct'] as number | null) ?? null,
+        (r['soil_temp_c'] as number | null) ?? null,
+        // battery_pct for the DO UPDATE branch
         (r['battery_pct'] as number | null) ?? null,
       ),
     );
@@ -163,6 +191,9 @@ export async function handleIngest(
     await env.DB.batch(stmts);
   }
 
+  // ── Check for active claim windows and detect bursts ──────────────────────
+  ctx.waitUntil(checkAndClaimBursts(env, deviceId, body.readings));
+
   // ── Update Durable Object accumulator ────────────────────────────────────
   const doId = env.DEVICE_STATE.idFromName(deviceId);
   const stub = env.DEVICE_STATE.get(doId);
@@ -172,6 +203,113 @@ export async function handleIngest(
       body: JSON.stringify({ readings: body.readings }),
     }),
   );
+
+/**
+ * Check for active claim windows and detect bursts (2+ readings from same RF ID within 10 seconds).
+ * If burst detected and RF ID not yet claimed by user, mark it as claimed in the claim window.
+ */
+async function checkAndClaimBursts(
+  env: Env,
+  deviceId: string,
+  readings: unknown[],
+): Promise<void> {
+  try {
+    // Get all active claim windows for this device
+    const claimKeys = await env.CLAIM_WINDOWS.list({ prefix: 'claim:' });
+    if (claimKeys.keys.length === 0) return;
+
+    // Parse claim windows and filter by device
+    const claimWindows: Array<{ key: string; window: ClaimWindow }> = [];
+    for (const key of claimKeys.keys) {
+      const json = await env.CLAIM_WINDOWS.get(key.name);
+      if (json) {
+        const window: ClaimWindow = JSON.parse(json);
+        if (window.device_id === deviceId && !window.claimed_rf_id) {
+          claimWindows.push({ key: key.name, window });
+        }
+      }
+    }
+
+    if (claimWindows.length === 0) return;
+
+    // Group readings by RF ID
+    const rfIdGroups: Record<string, Array<{ rf_id: string; recorded_at: number }>> = {};
+    for (const raw of readings) {
+      const r = raw as Record<string, unknown>;
+      const rfId = r['sensor_rf_id'];
+      const sensorType = r['sensor_type'];
+      const recordedAt = r['recorded_at'];
+
+      if (typeof rfId === 'string' && typeof recordedAt === 'number') {
+        if (!rfIdGroups[rfId]) rfIdGroups[rfId] = [];
+        rfIdGroups[rfId].push({ rf_id: rfId, recorded_at: recordedAt });
+      }
+    }
+
+    // Detect bursts (2+ readings within 10 seconds) and check for unclaimed sensors
+    for (const claimWindow of claimWindows) {
+      for (const [rfId, readingsForRf] of Object.entries(rfIdGroups)) {
+        // Must have 2+ readings within 10 seconds to be a burst
+        if (readingsForRf.length < 2) continue;
+
+        const times = readingsForRf.map(r => r.recorded_at).sort((a, b) => a - b);
+        const timeSpan = (times[times.length - 1] ?? 0) - (times[0] ?? 0);
+        if (timeSpan > 10) continue;
+
+        // This is a burst. Check if RF ID already claimed by user.
+        const existing = await env.DB.prepare(`
+          SELECT id FROM sensors
+          WHERE device_id = ? AND rf_id = ?
+          LIMIT 1
+        `).bind(claimWindow.window.device_id, rfId).first<{ id: string }>();
+
+        if (existing) {
+          // Already has a sensor with this RF ID. Skip.
+          continue;
+        }
+
+        // Burst detected and RF ID unclaimed. Mark as claimed in the claim window.
+        claimWindow.window.claimed_rf_id = rfId;
+        await env.CLAIM_WINDOWS.put(
+          claimWindow.key,
+          JSON.stringify(claimWindow.window),
+          { expirationTtl: 30 },
+        );
+
+        // Also create or ensure the sensor is in the DB with a name
+        // The sensor should already be created by the upsert above, just update its name
+        const sensorReadings = readingsForRf.filter(r => r.rf_id === rfId);
+        if (sensorReadings.length > 0) {
+          const sensorType = (readings as Record<string, unknown>[]).find(
+            r => (r as Record<string, unknown>)['sensor_rf_id'] === rfId
+          )?._sensorType;
+
+          // Default name based on sensor type (will be customized by user later)
+          const typeNames: Record<string, string> = {
+            'weather_station': 'Weather Station',
+            'soil': 'Soil Sensor',
+            'greenhouse': 'Greenhouse',
+            'indoor': 'Indoor Sensor',
+          };
+          const defaultName = typeNames[claimWindow.window.sensor_type] || 'Sensor';
+
+          await env.DB.prepare(`
+            UPDATE sensors
+            SET name = ?
+            WHERE device_id = ? AND rf_id = ?
+          `).bind(defaultName, claimWindow.window.device_id, rfId).run();
+        }
+
+        // Only one burst per claim window
+        break;
+      }
+    }
+  } catch (err) {
+    console.error('Error checking claim bursts:', err);
+    // Don't fail the ingest request if burst check fails
+  }
+}
+
 
   return jsonResponse({ ok: true, accepted: body.readings.length });
 }

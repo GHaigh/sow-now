@@ -8,6 +8,7 @@ import { CropsPage } from './pages/Crops';
 import { SensorsPage } from './pages/Sensors';
 import { SettingsPage } from './pages/Settings';
 import { LoginPage } from './pages/Login';
+import { SetupGuidePage } from './pages/SetupGuide';
 import { AppShell } from './components/AppShell';
 import { API_BASE } from './lib/api';
 
@@ -116,6 +117,7 @@ export function App() {
         <SessionCapture />
         <Routes>
           <Route path="/login" element={<LoginPage />} />
+          <Route path="/guide" element={<SetupGuidePage />} />
           <Route path="/auth/verify" element={<SessionCapture />} />
           <Route path="/setup/*" element={<OnboardingPage />} />
           <Route path="/*" element={<ProtectedRoutes />} />
