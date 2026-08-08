@@ -7,11 +7,14 @@
  *   GET  /api/v1/readings/live   — SSE live sensor stream (user JWT auth)
  *   GET  /api/v1/dashboard       — current GDD + sensor snapshot
  *   GET  /api/v1/advice/today    — today's advice card
- *   GET  /api/v1/crops           — user's crop list
- *   POST /api/v1/crops           — add a crop
- *   PATCH /api/v1/crops/:id      — update crop status
- *   POST /api/v1/sensors/claim/start  — start a sensor claim window
- *   GET  /api/v1/sensors/claim/:id    — poll for claim result
+ *   GET  /api/v1/crops                    — user's crop list
+ *   POST /api/v1/crops                    — add a crop
+ *   PATCH /api/v1/crops/:id               — update crop status
+ *   GET  /api/v1/varieties?crop_key=tomato — search varieties
+ *   GET  /api/v1/varieties/:id/predict    — planting plan for a variety
+ *   POST /api/v1/varieties                — submit community variety
+ *   POST /api/v1/sensors/claim/start      — start a sensor claim window
+ *   GET  /api/v1/sensors/claim/:id        — poll for claim result
  *
  * Scheduled (cron 30 5 * * *):
  *   GDD engine + advice generation
@@ -26,6 +29,7 @@ import { handleCrops }           from './routes/crops';
 import { handleAuth, getMe }     from './routes/auth';
 import { handleSensors }         from './routes/sensors';
 import { handleClaimStart, handleClaimPoll, handleCandidates, handleConfirm, handleWH51Candidates, handleWH51Confirm } from './routes/claim';
+import { handleVarieties }        from './routes/varieties';
 import { handleBilling }         from './routes/billing';
 import { handleStripeWebhook }   from './routes/stripe-webhook';
 import { handleAdviceQueue }     from './queue/advice-consumer';
@@ -98,6 +102,11 @@ export default {
       }
       if (path.startsWith('/api/v1/sensors/claim/') && request.method === 'GET') {
         return handleClaimPoll(request, env, ctx);
+      }
+
+      // ── Varieties + planting predictions ─────────────────────────────────
+      if (path.startsWith('/api/v1/varieties')) {
+        return handleVarieties(request, env, ctx);
       }
 
       // ── Billing routes (user session auth) ───────────────────────────────

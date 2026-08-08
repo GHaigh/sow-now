@@ -87,3 +87,66 @@ export async function confirmClaim(rfId: string, name?: string): Promise<{
   );
   return data.sensor;
 }
+
+// ── Varieties + planting predictions ─────────────────────────────────────────
+
+export interface Variety {
+  id:                   string;
+  crop_key:             string;
+  name:                 string;
+  supplier:             string | null;
+  gdd_to_harvest_min:   number;
+  gdd_to_harvest_max:   number;
+  base_temp_c:          number;
+  days_to_harvest_min:  number | null;
+  days_to_harvest_max:  number | null;
+  start_indoors_weeks:  number | null;
+  sow_method:           'indoor' | 'direct' | 'either';
+  determinate:          number | null;
+  description:          string | null;
+  verified:             number;
+}
+
+export interface PlantingPlan {
+  variety_name:         string;
+  crop_key:             string;
+  sow_date:             string | null;
+  sow_location:         'indoor' | 'direct';
+  move_to_greenhouse:   string | null;
+  plant_out_date:       string | null;
+  harvest_date_min:     string | null;
+  harvest_date_max:     string | null;
+  viable:               boolean;
+  viability_note:       string | null;
+  gdd_needed:           number;
+  season_gdd_available: number;
+}
+
+export async function searchVarieties(cropKey: string, q = ''): Promise<Variety[]> {
+  const params = new URLSearchParams({ crop_key: cropKey });
+  if (q.length >= 2) params.set('q', q);
+  const data = await apiFetch<{ varieties: Variety[] }>(`/api/v1/varieties?${params}`);
+  return data.varieties;
+}
+
+export async function predictVariety(varietyId: string): Promise<{
+  plan: PlantingPlan;
+  variety: Variety;
+  climate_zone: string;
+}> {
+  return apiFetch(`/api/v1/varieties/${varietyId}/predict`);
+}
+
+export async function submitCommunityVariety(payload: {
+  crop_key: string;
+  name: string;
+  gdd_to_harvest_min: number;
+  gdd_to_harvest_max: number;
+  supplier?: string;
+  description?: string;
+}): Promise<{ ok: boolean; id: string }> {
+  return apiFetch('/api/v1/varieties', {
+    method: 'POST',
+    body: JSON.stringify(payload),
+  });
+}
