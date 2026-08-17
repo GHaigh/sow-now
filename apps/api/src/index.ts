@@ -16,7 +16,8 @@
  *   POST /api/v1/varieties                — submit community variety
  *   POST /api/v1/sensors/claim/start      — start a sensor claim window
  *   GET  /api/v1/sensors/claim/:id        — poll for claim result
- *   PATCH /api/v1/me/location             — update postcode / climate zone
+ *   PATCH  /api/v1/me/location             — update postcode / climate zone
+ *   DELETE /api/v1/me                      — GDPR account erasure
  *   POST   /api/v1/me/push-subscribe      — register Web Push subscription
  *   DELETE /api/v1/me/push-subscribe      — remove Web Push subscription
  *
@@ -56,7 +57,7 @@ export default {
 
     try {
       // ── Auth routes (public) ──────────────────────────────────────────────
-      if (path.startsWith('/api/v1/auth') || path === '/api/v1/me') {
+      if (path.startsWith('/api/v1/auth') || path === '/api/v1/me' || path.startsWith('/api/v1/me/')) {
         return handleAuth(request, env, ctx);
       }
 
@@ -87,7 +88,7 @@ export default {
       if (path === '/api/v1/sensors' && request.method === 'GET') {
         return handleSensors(request, env, ctx);
       }
-      if (path.startsWith('/api/v1/sensors/') && request.method === 'PATCH') {
+      if (path.startsWith('/api/v1/sensors/') && (request.method === 'PATCH' || request.method === 'DELETE')) {
         return handleSensors(request, env, ctx);
       }
       if (path === '/api/v1/sensors/claim/start' && request.method === 'POST') {

@@ -19,11 +19,11 @@ interface DeviceInfo {
   firmware_version: string | null;
 }
 
-const TYPE_ICON: Record<string, string> = { weather_station: '🌤', soil: '💧', greenhouse: '🏡', indoor: '🌡' };
+const TYPE_ICON: Record<string, string>  = { weather_station: '🌤', soil: '💧', greenhouse: '🏡', indoor: '🌡' };
 const TYPE_LABEL: Record<string, string> = { weather_station: 'Weather Station', soil: 'Soil Sensor', greenhouse: 'Greenhouse', indoor: 'Indoor Sensor' };
 
 export function SensorsPage() {
-  const [device, setDevice] = useState<DeviceInfo | null>(null);
+  const [device, setDevice]   = useState<DeviceInfo | null>(null);
   const [sensors, setSensors] = useState<Sensor[]>([]);
   const [loading, setLoading] = useState(true);
   const [scanning, setScanning] = useState(false);
@@ -35,6 +35,11 @@ export function SensorsPage() {
   };
 
   useEffect(() => { loadSensors(); }, []);
+
+  const deleteSensor = async (id: string) => {
+    await apiFetch(`/api/v1/sensors/${id}`, { method: 'DELETE' });
+    setSensors(prev => prev.filter(s => s.id !== id));
+  };
 
   const timeSince = (ts: number | null) => {
     if (!ts) return 'Never';
@@ -97,27 +102,7 @@ export function SensorsPage() {
             </div>
           ) : (
             sensors.map(s => (
-              <div key={s.id} className="card">
-                <div className="row-between">
-                  <div className="row" style={{ gap: 10 }}>
-                    <span style={{ fontSize: '1.5rem' }}>{TYPE_ICON[s.sensor_type]}</span>
-                    <div>
-                      <div style={{ fontWeight: 700 }}>{s.name || TYPE_LABEL[s.sensor_type]}</div>
-                      <div style={{ fontSize: '0.78rem', color: '#9ca3af' }}>
-                        Last seen: {timeSince(s.last_seen_at)}
-                      </div>
-                    </div>
-                  </div>
-                  <div className="stack" style={{ gap: 4, alignItems: 'flex-end' }}>
-                    <span className="badge badge-green">Active</span>
-                    {s.battery_pct != null && (
-                      <span className={`badge ${s.battery_pct < 20 ? 'badge-amber' : 'badge-grey'}`}>
-                        🔋 {s.battery_pct}%
-                      </span>
-                    )}
-                  </div>
-                </div>
-              </div>
+              <SensorCard key={s.id} sensor={s} timeSince={timeSince} onDelete={deleteSensor} />
             ))
           )}
 
@@ -132,6 +117,75 @@ export function SensorsPage() {
           >
             + Scan for sensors
           </button>
+        </div>
+      )}
+    </div>
+  );
+}
+
+function SensorCard({
+  sensor: s,
+  timeSince,
+  onDelete,
+}: {
+  sensor: Sensor;
+  timeSince: (ts: number | null) => string;
+  onDelete: (id: string) => void;
+}) {
+  const [confirmDelete, setConfirmDelete] = useState(false);
+
+  return (
+    <div className="card">
+      <div className="row-between">
+        <div className="row" style={{ gap: 10 }}>
+          <span style={{ fontSize: '1.5rem' }}>{TYPE_ICON[s.sensor_type]}</span>
+          <div>
+            <div style={{ fontWeight: 700 }}>{s.name || TYPE_LABEL[s.sensor_type]}</div>
+            <div style={{ fontSize: '0.78rem', color: '#9ca3af' }}>
+              Last seen: {timeSince(s.last_seen_at)}
+            </div>
+          </div>
+        </div>
+        <div className="row" style={{ gap: 6 }}>
+          <div className="stack" style={{ gap: 4, alignItems: 'flex-end' }}>
+            <span className="badge badge-green">Active</span>
+            {s.battery_pct != null && (
+              <span className={`badge ${s.battery_pct < 20 ? 'badge-amber' : 'badge-grey'}`}>
+                🔋 {s.battery_pct}%
+              </span>
+            )}
+          </div>
+          <button
+            onClick={() => setConfirmDelete(v => !v)}
+            style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: '1rem', color: '#9ca3af', padding: '2px 4px' }}
+            aria-label="Delete sensor"
+            title="Delete sensor"
+          >
+            ···
+          </button>
+        </div>
+      </div>
+
+      {confirmDelete && (
+        <div style={{ marginTop: 10, background: '#fef2f2', borderRadius: 8, padding: '10px 12px' }}>
+          <p style={{ fontSize: '0.82rem', color: '#991b1b', marginBottom: 8 }}>
+            Remove this sensor? Its readings will be deleted.
+          </p>
+          <div className="row" style={{ gap: 8 }}>
+            <button
+              className="btn btn-secondary"
+              style={{ fontSize: '0.82rem', padding: '8px', flex: 1 }}
+              onClick={() => setConfirmDelete(false)}
+            >
+              Cancel
+            </button>
+            <button
+              style={{ flex: 1, background: '#dc2626', color: '#fff', border: 'none', borderRadius: 8, padding: '8px', fontSize: '0.82rem', fontWeight: 700, cursor: 'pointer' }}
+              onClick={() => onDelete(s.id)}
+            >
+              Delete
+            </button>
+          </div>
         </div>
       )}
     </div>

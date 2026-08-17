@@ -66,6 +66,7 @@ export async function handleDashboard(
     FROM gdd_daily
     WHERE user_id = ?
       AND date >= date('now', '-7 days')
+      AND base_temp_c = 10.0
     GROUP BY date, zone
     ORDER BY date ASC
   `).bind(userId).all<{ date: string; gdd: number; zone: string }>();

@@ -17,6 +17,7 @@
  */
 
 import { jsonResponse, errorResponse } from '../lib/http';
+import { requireTier } from '../lib/tier';
 import { getUserIdFromSession } from './auth';
 import { generatePlantingPlan, buildGddProfile } from '../lib/planner';
 import type { Env } from '../types/env';
@@ -58,6 +59,8 @@ export async function handleVarieties(
     return searchVarieties(request, env);
   }
   if (request.method === 'GET' && varietyId && isPredict) {
+    const tierError = await requireTier(userId, 'grower', env, request);
+    if (tierError) return tierError;
     return predictForVariety(varietyId, userId, request, env);
   }
   if (request.method === 'POST' && !varietyId) {

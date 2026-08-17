@@ -1,11 +1,12 @@
 /**
  * Auth routes
  *
- * POST /api/v1/auth/magic-link   — send a sign-in email
- * GET  /api/v1/auth/verify       — verify token from email link, issue session
- * POST /api/v1/auth/logout       — invalidate session
- * GET  /api/v1/me                — return current user profile
- * PATCH /api/v1/me/location      — update postcode / climate zone
+ * POST   /api/v1/auth/magic-link   — send a sign-in email
+ * GET    /api/v1/auth/verify       — verify token from email link, issue session
+ * POST   /api/v1/auth/logout       — invalidate session
+ * GET    /api/v1/me                — return current user profile
+ * PATCH  /api/v1/me/location       — update postcode / climate zone
+ * DELETE /api/v1/me                — permanently delete account (GDPR erasure)
  */
 
 import { jsonResponse, errorResponse } from '../lib/http';
@@ -15,6 +16,12 @@ import type { Env } from '../types/env';
 const SESSION_TTL_S = 30 * 24 * 3600;
 // Magic link token TTL: 15 minutes
 const MAGIC_LINK_TTL_S = 15 * 60;
+// Rate-limit window: 1 hour
+const RATE_LIMIT_WINDOW_S = 60 * 60;
+// Max magic-link requests per email per hour
+const RATE_LIMIT_EMAIL = 5;
+// Max magic-link requests per IP per hour
+const RATE_LIMIT_IP = 10;
 
 export async function handleAuth(
   request: Request,
@@ -39,6 +46,9 @@ export async function handleAuth(
   if (path === '/api/v1/me/location' && request.method === 'PATCH') {
     return updateLocation(request, env);
   }
+  if (path === '/api/v1/me' && request.method === 'DELETE') {
+    return deleteAccount(request, env);
+  }
 
   return errorResponse(404, 'Not found');
 }
@@ -51,6 +61,30 @@ async function sendMagicLink(request: Request, env: Env, ctx: ExecutionContext):
   if (!email || !isValidEmail(email)) {
     return errorResponse(400, 'Valid email required');
   }
+
+  // Rate limiting — keyed by email and by IP, stored in KV with 1-hour TTL
+  const ip = request.headers.get('CF-Connecting-IP') ?? 'unknown';
+  const emailKey = `rl:ml:email:${email}`;
+  const ipKey    = `rl:ml:ip:${ip}`;
+
+  const [emailCountStr, ipCountStr] = await Promise.all([
+    env.SESSIONS.get(emailKey),
+    env.SESSIONS.get(ipKey),
+  ]);
+
+  const emailCount = parseInt(emailCountStr ?? '0', 10);
+  const ipCount    = parseInt(ipCountStr ?? '0', 10);
+
+  if (emailCount >= RATE_LIMIT_EMAIL || ipCount >= RATE_LIMIT_IP) {
+    return errorResponse(429, 'Too many requests — please wait before requesting another sign-in link');
+  }
+
+  // Increment counters; preserve remaining TTL by using metadata if possible,
+  // but simpler: reset TTL each time (conservative: timer resets on each attempt).
+  await Promise.all([
+    env.SESSIONS.put(emailKey, String(emailCount + 1), { expirationTtl: RATE_LIMIT_WINDOW_S }),
+    env.SESSIONS.put(ipKey,    String(ipCount + 1),    { expirationTtl: RATE_LIMIT_WINDOW_S }),
+  ]);
 
   // Upsert user
   const userId = await upsertUser(email, env);
@@ -188,6 +222,56 @@ async function updateLocation(request: Request, env: Env): Promise<Response> {
   ).bind(postcode, zone, userId).run();
 
   return jsonResponse({ ok: true, postcode, zone }, 200, request);
+}
+
+// ── DELETE /api/v1/me ─────────────────────────────────────────────────────────
+async function deleteAccount(request: Request, env: Env): Promise<Response> {
+  const userId = await getUserIdFromSession(request, env);
+  if (!userId) return errorResponse(401, 'Unauthorised');
+
+  // Fetch stripe_customer_id before deletion so we can cancel in Stripe
+  const user = await env.DB.prepare(
+    'SELECT email, stripe_customer_id FROM users WHERE id = ?',
+  ).bind(userId).first<{ email: string; stripe_customer_id: string | null }>();
+
+  if (!user) return errorResponse(404, 'User not found');
+
+  // Cancel active Stripe subscription if present
+  if (user.stripe_customer_id && env.STRIPE_SECRET_KEY) {
+    try {
+      // List active subscriptions and cancel them
+      const listRes = await fetch(
+        `https://api.stripe.com/v1/subscriptions?customer=${user.stripe_customer_id}&status=active&limit=5`,
+        { headers: { Authorization: `Bearer ${env.STRIPE_SECRET_KEY}` } },
+      );
+      if (listRes.ok) {
+        const list = await listRes.json() as { data: { id: string }[] };
+        await Promise.all(
+          list.data.map((sub) =>
+            fetch(`https://api.stripe.com/v1/subscriptions/${sub.id}/cancel`, {
+              method: 'POST',
+              headers: { Authorization: `Bearer ${env.STRIPE_SECRET_KEY}` },
+            }),
+          ),
+        );
+      }
+    } catch (err) {
+      // Non-fatal — log and proceed with deletion
+      console.error('Stripe subscription cancellation failed during account deletion:', err);
+    }
+  }
+
+  // D1 cascade: all related rows (devices, sensors, readings, crops, advice,
+  // gdd_daily, provision_tokens) are deleted automatically via ON DELETE CASCADE.
+  await env.DB.prepare('DELETE FROM users WHERE id = ?').bind(userId).run();
+
+  // Invalidate the current session
+  const auth = request.headers.get('Authorization');
+  if (auth?.startsWith('Bearer ')) {
+    await env.SESSIONS.delete(`session:${auth.slice(7)}`);
+  }
+
+  return jsonResponse({ ok: true, message: 'Account deleted' }, 200, request);
 }
 
 // ── Helpers ───────────────────────────────────────────────────────────────────

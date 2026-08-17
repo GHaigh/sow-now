@@ -5,6 +5,9 @@
  *
  * PATCH /api/v1/sensors/:id
  *   Rename a sensor. Body: { name: string }
+ *
+ * DELETE /api/v1/sensors/:id
+ *   Remove a sensor. The sensor's readings are also deleted (CASCADE).
  */
 
 import { jsonResponse, errorResponse } from '../lib/http';
@@ -18,6 +21,18 @@ export async function handleSensors(
 ): Promise<Response> {
   const userId = await getUserIdFromSession(request, env);
   if (!userId) return errorResponse(401, 'Unauthorised');
+
+  // ── DELETE /api/v1/sensors/:id — remove ─────────────────────────────────
+  if (request.method === 'DELETE') {
+    const sensorId = new URL(request.url).pathname.split('/').pop();
+    if (!sensorId) return errorResponse(400, 'sensor id required');
+
+    await env.DB.prepare(
+      'DELETE FROM sensors WHERE id = ? AND user_id = ?',
+    ).bind(sensorId, userId).run();
+
+    return jsonResponse({ ok: true }, 200, request);
+  }
 
   // ── PATCH /api/v1/sensors/:id — rename ───────────────────────────────────
   if (request.method === 'PATCH') {

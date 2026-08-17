@@ -9,6 +9,8 @@ export function LoginPage() {
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
 
+  const accountDeleted = new URLSearchParams(window.location.search).get('deleted') === '1';
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
@@ -40,6 +42,15 @@ export function LoginPage() {
 
   return (
     <div className={styles.page}>
+      {accountDeleted && (
+        <div style={{
+          background: '#f0fdf4', border: '1px solid #bbf7d0', borderRadius: 10,
+          padding: '12px 16px', fontSize: '13px', color: '#166534',
+          marginBottom: 16, textAlign: 'center',
+        }}>
+          Your account has been permanently deleted. Sorry to see you go.
+        </div>
+      )}
       <div className={styles.hero}>
         <div className={styles.logo}>🌱</div>
         <h1 className={styles.brand}>Sow Now</h1>

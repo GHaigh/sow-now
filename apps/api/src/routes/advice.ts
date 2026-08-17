@@ -1,13 +1,16 @@
-import { getUserIdFromSession } from './auth';
 /**
  * GET  /api/v1/advice/today
  *
  * Returns today's advice card for the authenticated user.
  * Falls back to the most recent available advice if today's hasn't
  * been generated yet (e.g. new user, cron not yet run).
+ *
+ * Requires: grower tier or above.
  */
 
 import { jsonResponse, errorResponse } from '../lib/http';
+import { requireTier } from '../lib/tier';
+import { getUserIdFromSession } from './auth';
 import type { Env } from '../types/env';
 
 export async function handleAdvice(
@@ -17,6 +20,9 @@ export async function handleAdvice(
 ): Promise<Response> {
   const userId = await getUserIdFromSession(request, env);
   if (!userId) return errorResponse(401, 'Unauthorised');
+
+  const tierError = await requireTier(userId, 'grower', env, request);
+  if (tierError) return tierError;
 
   const today = new Date().toISOString().slice(0, 10);
 

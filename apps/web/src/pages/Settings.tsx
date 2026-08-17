@@ -49,6 +49,8 @@ export function SettingsPage() {
   const [loading, setLoading] = useState(true);
   const [upgrading, setUpgrading] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [deleteConfirm, setDeleteConfirm] = useState(false);
+  const [deleting, setDeleting] = useState(false);
 
   // Location form state
   const [postcode, setPostcode] = useState('');
@@ -155,6 +157,21 @@ export function SettingsPage() {
       setError('Failed to update notification settings.');
     } finally {
       setPushLoading(false);
+    }
+  }
+
+  async function deleteAccount() {
+    setDeleting(true);
+    setError(null);
+    try {
+      await apiFetch('/api/v1/me', { method: 'DELETE' });
+      localStorage.removeItem('session_token');
+      window.location.href = '/login?deleted=1';
+    } catch {
+      setError('Failed to delete account. Please try again or contact support.');
+    } finally {
+      setDeleting(false);
+      setDeleteConfirm(false);
     }
   }
 
@@ -315,6 +332,40 @@ export function SettingsPage() {
         >
           Sign out
         </button>
+      </section>
+
+      {/* Delete account */}
+      <section className={styles.section}>
+        {!deleteConfirm ? (
+          <button
+            className={styles.deleteBtn}
+            onClick={() => setDeleteConfirm(true)}
+          >
+            Delete account
+          </button>
+        ) : (
+          <div className={styles.deleteConfirmBox}>
+            <p className={styles.deleteWarning}>
+              This will permanently delete your account, all sensor data, crops, and advice history.
+              This cannot be undone.
+            </p>
+            <div className={styles.deleteActions}>
+              <button
+                className={styles.deleteConfirmBtn}
+                disabled={deleting}
+                onClick={deleteAccount}
+              >
+                {deleting ? 'Deleting…' : 'Yes, delete my account'}
+              </button>
+              <button
+                className={styles.deleteCancelBtn}
+                onClick={() => setDeleteConfirm(false)}
+              >
+                Cancel
+              </button>
+            </div>
+          </div>
+        )}
       </section>
     </div>
   );

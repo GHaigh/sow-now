@@ -16,8 +16,6 @@
 import { jsonResponse, errorResponse } from '../lib/http';
 import type { Env } from '../types/env';
 
-const TIER_MAP: Record<string, 'grower' | 'smallholder'> = {};
-
 // ── Signature verification (Stripe v3 scheme) ─────────────────────────────────
 async function verifyStripeSignature(
   payload: string,
