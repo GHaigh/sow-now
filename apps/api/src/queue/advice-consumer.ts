@@ -13,6 +13,7 @@
  */
 
 import type { Env } from '../types/env';
+import { sendWebPush } from '../lib/webpush';
 
 interface AdviceJob {
   userId: string;
@@ -132,6 +133,55 @@ async function generateAdvice(userId: string, date: string, env: Env): Promise<v
     JSON.stringify({ outdoor: deviceState.latest.outdoor, alerts: deviceState.alerts, gdd: deviceState.gdd }),
     '@cf/meta/llama-3.1-8b-instruct',
   ).run();
+
+  // ── Send Web Push notification ───────────────────────────────────────────
+  await sendAdvicePush(userId, actions[0] ?? 'Your daily growing report is ready.', env);
+}
+
+async function sendAdvicePush(userId: string, summary: string, env: Env): Promise<void> {
+  // Only send if VAPID secrets are configured
+  if (!env.VAPID_PRIVATE_KEY || !env.VAPID_PUBLIC_KEY || !env.VAPID_SUBJECT) return;
+
+  const user = await env.DB.prepare(`
+    SELECT push_enabled, push_endpoint, push_p256dh, push_auth
+    FROM users WHERE id = ?
+  `).bind(userId).first<{
+    push_enabled: number;
+    push_endpoint: string | null;
+    push_p256dh:   string | null;
+    push_auth:     string | null;
+  }>();
+
+  if (!user?.push_enabled || !user.push_endpoint || !user.push_p256dh || !user.push_auth) {
+    return; // User hasn't subscribed to push notifications
+  }
+
+  try {
+    const delivered = await sendWebPush(
+      user.push_endpoint,
+      user.push_p256dh,
+      user.push_auth,
+      {
+        title: 'Sow Now',
+        body:  summary.length > 100 ? summary.slice(0, 97) + '…' : summary,
+        url:   '/advice',
+      },
+      env,
+    );
+
+    if (!delivered) {
+      // 410 Gone — subscription is no longer valid, clear it
+      await env.DB.prepare(`
+        UPDATE users
+        SET push_enabled = 0, push_endpoint = NULL, push_p256dh = NULL, push_auth = NULL
+        WHERE id = ?
+      `).bind(userId).run();
+      console.log(`Push subscription expired for user ${userId} — cleared`);
+    }
+  } catch (err) {
+    // Log but don't fail advice generation over a push delivery error
+    console.error(`Push send failed for user ${userId}:`, err);
+  }
 }
 
 function buildAdvicePrompt(data: {

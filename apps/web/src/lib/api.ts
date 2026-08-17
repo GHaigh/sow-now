@@ -1,5 +1,7 @@
 export const API_BASE = 'https://api.sow-now.uk';
-export const VAPID_PUBLIC_KEY = 'REPLACE_WITH_VAPID_PUBLIC_KEY';
+// VAPID public key — matches VAPID_PUBLIC_KEY secret set on the Worker.
+// Re-generate with: node scripts/gen-vapid.mjs
+export const VAPID_PUBLIC_KEY = 'BK7rMJB0nnAtHm_w_oarwocEntTr5Vgh9V7v68kUBw88jDWYfM623H_6LERQgJl6_vUNsmQoIYiBnKTf-Yl-DMw';
 const API = API_BASE;
 
 function authHeaders(): HeadersInit {

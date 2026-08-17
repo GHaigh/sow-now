@@ -74,12 +74,13 @@ async function addCrop(userId: string, request: Request, env: Env): Promise<Resp
   if (!validZones.includes(zone)) return errorResponse(400, 'Invalid zone');
 
   await env.DB.prepare(`
-    INSERT INTO crops (id, user_id, crop_key, variety, bed_name, zone, status, gdd_base_temp_c, sown_at, notes)
-    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+    INSERT INTO crops (id, user_id, crop_key, variety, variety_id, bed_name, zone, status, gdd_base_temp_c, sown_at, notes)
+    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
   `).bind(
     id, userId,
     body['crop_key'] as string,
     (body['variety'] as string | null) ?? null,
+    (body['variety_id'] as string | null) ?? null,
     (body['bed_name'] as string | null) ?? null,
     zone,
     (body['status'] as string) ?? 'planned',

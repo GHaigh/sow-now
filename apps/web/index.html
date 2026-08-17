@@ -14,10 +14,6 @@
     <title>Sow Now</title>
   </head>
   <body>
-    <!-- Kill-switch: unregisters stale service workers from previous deploys.
-         Must be a classic script (not module) so it runs synchronously before
-         the app boots and before any module resolution happens. -->
-    <script src="/sw-nuke.js"></script>
     <div id="root"></div>
     <script type="module" src="/src/main.tsx"></script>
   </body>

@@ -1,4 +1,3 @@
-import { getUserIdFromSession } from './auth';
 /**
  * GET /api/v1/readings/live
  *
@@ -6,10 +5,10 @@ import { getUserIdFromSession } from './auth';
  * Polls the Durable Object every 30 seconds and pushes latest state.
  * Clients reconnect automatically via EventSource API.
  *
- * Auth: user session JWT in Authorization header.
+ * Auth: session token in ?token= query param (EventSource cannot set headers).
  */
 
-import { errorResponse } from '../lib/http';
+import { errorResponse, corsHeaders } from '../lib/http';
 import type { Env } from '../types/env';
 
 export async function handleLiveReadings(
@@ -17,8 +16,13 @@ export async function handleLiveReadings(
   env: Env,
   ctx: ExecutionContext,
 ): Promise<Response> {
-  const userId = await getUserIdFromSession(request, env);
-  if (!userId) return errorResponse(401, 'Unauthorised');
+  // EventSource cannot set headers — token is passed as ?token=
+  const url = new URL(request.url);
+  const token = url.searchParams.get('token');
+  if (!token) return errorResponse(401, 'Unauthorised', request);
+
+  const userId = await env.SESSIONS.get(`session:${token}`);
+  if (!userId) return errorResponse(401, 'Unauthorised', request);
 
   const { results: devices } = await env.DB
     .prepare('SELECT id FROM devices WHERE user_id = ? LIMIT 1')
@@ -69,7 +73,7 @@ export async function handleLiveReadings(
       'Content-Type': 'text/event-stream',
       'Cache-Control': 'no-cache',
       'Connection': 'keep-alive',
-      'Access-Control-Allow-Origin': 'https://sow-now.uk',
+      ...corsHeaders(request),
     },
   });
 }

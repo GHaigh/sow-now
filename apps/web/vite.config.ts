@@ -6,13 +6,15 @@ export default defineConfig({
   plugins: [
     react(),
     VitePWA({
-      // selfDestroying: generates a sw.js that immediately unregisters itself
-      // and clears all caches. This kills any stale SW already installed on
-      // clients that causes "text/html MIME type" errors when old hashed
-      // asset filenames are requested after a redeploy.
-      // Re-enable a proper SW config once the app is stable.
-      selfDestroying: true,
-      registerType: 'prompt',
+      // injectManifest: our custom sw.ts handles push events and precaching.
+      strategies: 'injectManifest',
+      srcDir: 'src',
+      filename: 'sw.ts',
+      registerType: 'autoUpdate',
+      injectManifest: {
+        swSrc: 'src/sw.ts',
+        swDest: 'dist/sw.js',
+      },
       manifest: {
         name: 'Sow Now — Precision Growing',
         short_name: 'Sow Now',

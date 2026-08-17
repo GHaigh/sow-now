@@ -144,10 +144,6 @@ export function SettingsPage() {
         await unsubscribePush();
         setPushEnabled(false);
       } else {
-        if (VAPID_PUBLIC_KEY === 'REPLACE_WITH_VAPID_PUBLIC_KEY') {
-          setError('Push notifications are not configured yet.');
-          return;
-        }
         const sub = await reg.pushManager.subscribe({
           userVisibleOnly: true,
           applicationServerKey: urlBase64ToArrayBuffer(VAPID_PUBLIC_KEY),
