@@ -9,7 +9,7 @@
  *   readings: [
  *     {
  *       sensor_rf_id: string,
- *       sensor_type: 'weather_station' | 'soil' | 'greenhouse',
+ *       sensor_type: 'weather_station' | 'soil' | 'greenhouse' | 'indoor',
  *       recorded_at: number,   // unix timestamp (Pi clock)
  *       // weather station fields (optional):
  *       temp_c?: number,
@@ -26,6 +26,8 @@
  *       soil_temp_c?: number,
  *       greenhouse_temp_c?: number,
  *       greenhouse_humidity_pct?: number,
+ *       indoor_temp_c?: number,
+ *       indoor_humidity_pct?: number,
  *       battery_pct?: number,
  *     },
  *     ...
@@ -204,9 +206,13 @@ export async function handleIngest(
     }),
   );
 
+  return jsonResponse({ ok: true, accepted: body.readings.length });
+}
+
 /**
- * Check for active claim windows and detect bursts (2+ readings from same RF ID within 10 seconds).
- * If burst detected and RF ID not yet claimed by user, mark it as claimed in the claim window.
+ * Check for active claim windows and detect bursts (2+ readings from same RF ID
+ * within 10 seconds). If burst detected and sensor not yet named, mark it as
+ * claimed in the claim window so the polling endpoint can return it.
  */
 async function checkAndClaimBursts(
   env: Env,
@@ -223,9 +229,9 @@ async function checkAndClaimBursts(
     for (const key of claimKeys.keys) {
       const json = await env.CLAIM_WINDOWS.get(key.name);
       if (json) {
-        const window: ClaimWindow = JSON.parse(json);
-        if (window.device_id === deviceId && !window.claimed_rf_id) {
-          claimWindows.push({ key: key.name, window });
+        const claimWindow: ClaimWindow = JSON.parse(json);
+        if (claimWindow.device_id === deviceId && !claimWindow.claimed_rf_id) {
+          claimWindows.push({ key: key.name, window: claimWindow });
         }
       }
     }
@@ -237,79 +243,58 @@ async function checkAndClaimBursts(
     for (const raw of readings) {
       const r = raw as Record<string, unknown>;
       const rfId = r['sensor_rf_id'];
-      const sensorType = r['sensor_type'];
       const recordedAt = r['recorded_at'];
-
       if (typeof rfId === 'string' && typeof recordedAt === 'number') {
         if (!rfIdGroups[rfId]) rfIdGroups[rfId] = [];
         rfIdGroups[rfId].push({ rf_id: rfId, recorded_at: recordedAt });
       }
     }
 
-    // Detect bursts (2+ readings within 10 seconds) and check for unclaimed sensors
-    for (const claimWindow of claimWindows) {
+    // Detect bursts (2+ readings within 10 seconds)
+    for (const { key, window: claimWindow } of claimWindows) {
       for (const [rfId, readingsForRf] of Object.entries(rfIdGroups)) {
-        // Must have 2+ readings within 10 seconds to be a burst
         if (readingsForRf.length < 2) continue;
 
         const times = readingsForRf.map(r => r.recorded_at).sort((a, b) => a - b);
         const timeSpan = (times[times.length - 1] ?? 0) - (times[0] ?? 0);
         if (timeSpan > 10) continue;
 
-        // This is a burst. Check if RF ID already claimed by user.
-        const existing = await env.DB.prepare(`
+        // Check if sensor has already been named (claimed) by the user
+        const namedSensor = await env.DB.prepare(`
           SELECT id FROM sensors
-          WHERE device_id = ? AND rf_id = ?
+          WHERE device_id = ? AND rf_id = ? AND (name IS NOT NULL AND name != '')
           LIMIT 1
-        `).bind(claimWindow.window.device_id, rfId).first<{ id: string }>();
+        `).bind(claimWindow.device_id, rfId).first<{ id: string }>();
 
-        if (existing) {
-          // Already has a sensor with this RF ID. Skip.
-          continue;
-        }
+        if (namedSensor) continue;
 
-        // Burst detected and RF ID unclaimed. Mark as claimed in the claim window.
-        claimWindow.window.claimed_rf_id = rfId;
+        // Burst detected on an unclaimed sensor — record in claim window
+        claimWindow.claimed_rf_id = rfId;
         await env.CLAIM_WINDOWS.put(
-          claimWindow.key,
-          JSON.stringify(claimWindow.window),
+          key,
+          JSON.stringify(claimWindow),
           { expirationTtl: 30 },
         );
 
-        // Also create or ensure the sensor is in the DB with a name
-        // The sensor should already be created by the upsert above, just update its name
-        const sensorReadings = readingsForRf.filter(r => r.rf_id === rfId);
-        if (sensorReadings.length > 0) {
-          const sensorType = (readings as Record<string, unknown>[]).find(
-            r => (r as Record<string, unknown>)['sensor_rf_id'] === rfId
-          )?._sensorType;
+        // Apply a default name so the sensor appears in the poll response
+        const defaultNames: Record<string, string> = {
+          weather_station: 'Weather Station',
+          soil:            'Soil Sensor',
+          greenhouse:      'Greenhouse',
+          indoor:          'Indoor Sensor',
+        };
+        const defaultName = defaultNames[claimWindow.sensor_type] ?? 'Sensor';
 
-          // Default name based on sensor type (will be customized by user later)
-          const typeNames: Record<string, string> = {
-            'weather_station': 'Weather Station',
-            'soil': 'Soil Sensor',
-            'greenhouse': 'Greenhouse',
-            'indoor': 'Indoor Sensor',
-          };
-          const defaultName = typeNames[claimWindow.window.sensor_type] || 'Sensor';
+        await env.DB.prepare(`
+          UPDATE sensors SET name = ?
+          WHERE device_id = ? AND rf_id = ? AND (name IS NULL OR name = '')
+        `).bind(defaultName, claimWindow.device_id, rfId).run();
 
-          await env.DB.prepare(`
-            UPDATE sensors
-            SET name = ?
-            WHERE device_id = ? AND rf_id = ?
-          `).bind(defaultName, claimWindow.window.device_id, rfId).run();
-        }
-
-        // Only one burst per claim window
-        break;
+        break; // Only one burst per claim window
       }
     }
   } catch (err) {
     console.error('Error checking claim bursts:', err);
     // Don't fail the ingest request if burst check fails
   }
-}
-
-
-  return jsonResponse({ ok: true, accepted: body.readings.length });
 }

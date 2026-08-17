@@ -1,4 +1,5 @@
 export const API_BASE = 'https://api.sow-now.uk';
+export const VAPID_PUBLIC_KEY = 'REPLACE_WITH_VAPID_PUBLIC_KEY';
 const API = API_BASE;
 
 function authHeaders(): HeadersInit {
@@ -135,6 +136,17 @@ export async function predictVariety(varietyId: string): Promise<{
   climate_zone: string;
 }> {
   return apiFetch(`/api/v1/varieties/${varietyId}/predict`);
+}
+
+export async function subscribePush(subscription: PushSubscriptionJSON): Promise<void> {
+  await apiFetch('/api/v1/me/push-subscribe', {
+    method: 'POST',
+    body: JSON.stringify(subscription),
+  });
+}
+
+export async function unsubscribePush(): Promise<void> {
+  await apiFetch('/api/v1/me/push-subscribe', { method: 'DELETE' });
 }
 
 export async function submitCommunityVariety(payload: {

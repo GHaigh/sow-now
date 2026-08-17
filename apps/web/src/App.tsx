@@ -7,6 +7,7 @@ import { AdvicePage } from './pages/Advice';
 import { CropsPage } from './pages/Crops';
 import { SensorsPage } from './pages/Sensors';
 import { SettingsPage } from './pages/Settings';
+import { BillingSuccessPage } from './pages/BillingSuccess';
 import { LoginPage } from './pages/Login';
 import { SetupGuidePage } from './pages/SetupGuide';
 import { AppShell } from './components/AppShell';
@@ -25,6 +26,7 @@ function ProtectedRoutes() {
         <Route path="/crops" element={<CropsPage />} />
         <Route path="/sensors" element={<SensorsPage />} />
         <Route path="/settings" element={<SettingsPage />} />
+        <Route path="/billing/success" element={<BillingSuccessPage />} />
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
     </AppShell>

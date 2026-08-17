@@ -60,6 +60,11 @@ export function CropsPage() {
     setCrops(prev => prev.map(c => c.id === id ? { ...c, status } : c));
   };
 
+  const deleteCrop = async (id: string) => {
+    await apiFetch(`/api/v1/crops/${id}`, { method: 'DELETE' });
+    setCrops(prev => prev.filter(c => c.id !== id));
+  };
+
   const activeCrops  = crops.filter(c => !['harvested', 'failed'].includes(c.status));
   const archiveCrops = crops.filter(c =>  ['harvested', 'failed'].includes(c.status));
 
@@ -88,14 +93,14 @@ export function CropsPage() {
           )}
 
           {activeCrops.map(c => (
-            <CropCard key={c.id} crop={c} onStatusChange={updateStatus} />
+            <CropCard key={c.id} crop={c} onStatusChange={updateStatus} onDelete={deleteCrop} />
           ))}
 
           {archiveCrops.length > 0 && (
             <>
               <div className={styles.sectionLabel}>Archive</div>
               {archiveCrops.map(c => (
-                <CropCard key={c.id} crop={c} onStatusChange={updateStatus} />
+                <CropCard key={c.id} crop={c} onStatusChange={updateStatus} onDelete={deleteCrop} />
               ))}
             </>
           )}
@@ -109,7 +114,16 @@ export function CropsPage() {
 
 // ── Crop card ─────────────────────────────────────────────────────────────────
 
-function CropCard({ crop, onStatusChange }: { crop: Crop; onStatusChange: (id: string, status: string) => void }) {
+function CropCard({
+  crop,
+  onStatusChange,
+  onDelete,
+}: {
+  crop: Crop;
+  onStatusChange: (id: string, status: string) => void;
+  onDelete: (id: string) => void;
+}) {
+  const [confirmDelete, setConfirmDelete] = useState(false);
   const emoji = CROP_EMOJI[crop.crop_key] ?? '🌿';
   const max   = crop.gdd_to_harvest_max ?? 1000;
   const pct   = Math.min((crop.gdd_accumulated / max) * 100, 100);
@@ -130,9 +144,19 @@ function CropCard({ crop, onStatusChange }: { crop: Crop; onStatusChange: (id: s
             </div>
           </div>
         </div>
-        <span className={`badge ${STATUS_BADGE[crop.status] ?? 'badge-grey'}`}>
-          {crop.status.charAt(0).toUpperCase() + crop.status.slice(1)}
-        </span>
+        <div className="row" style={{ gap: 6 }}>
+          <span className={`badge ${STATUS_BADGE[crop.status] ?? 'badge-grey'}`}>
+            {crop.status.charAt(0).toUpperCase() + crop.status.slice(1)}
+          </span>
+          <button
+            onClick={() => setConfirmDelete(v => !v)}
+            style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: '1rem', color: '#9ca3af', padding: '2px 4px' }}
+            aria-label="Delete crop"
+            title="Delete crop"
+          >
+            ···
+          </button>
+        </div>
       </div>
 
       {crop.status !== 'planned' && (
@@ -147,7 +171,7 @@ function CropCard({ crop, onStatusChange }: { crop: Crop; onStatusChange: (id: s
         </>
       )}
 
-      {next && (
+      {next && !confirmDelete && (
         <button
           className="btn btn-secondary"
           style={{ marginTop: 10, fontSize: '0.85rem', padding: '10px' }}
@@ -155,6 +179,27 @@ function CropCard({ crop, onStatusChange }: { crop: Crop; onStatusChange: (id: s
         >
           {next.label}
         </button>
+      )}
+
+      {confirmDelete && (
+        <div style={{ marginTop: 10, background: '#fef2f2', borderRadius: 8, padding: '10px 12px' }}>
+          <p style={{ fontSize: '0.82rem', color: '#991b1b', marginBottom: 8 }}>Remove this crop from your plan?</p>
+          <div className="row" style={{ gap: 8 }}>
+            <button
+              className="btn btn-secondary"
+              style={{ fontSize: '0.82rem', padding: '8px', flex: 1 }}
+              onClick={() => setConfirmDelete(false)}
+            >
+              Cancel
+            </button>
+            <button
+              style={{ flex: 1, background: '#dc2626', color: '#fff', border: 'none', borderRadius: 8, padding: '8px', fontSize: '0.82rem', fontWeight: 700, cursor: 'pointer' }}
+              onClick={() => onDelete(crop.id)}
+            >
+              Delete
+            </button>
+          </div>
+        </div>
       )}
     </div>
   );

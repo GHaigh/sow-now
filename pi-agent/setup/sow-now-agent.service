@@ -2,9 +2,12 @@
 Description=Sow Now Pi Agent — sensor data collector and uplink
 After=network-online.target
 Wants=network-online.target
-# Don't start until portal has exited (WiFi configured) and JWT is provisioned
+# Start after portal and provision if they exist, but don't hard-require them —
+# on already-provisioned devices these services may not be present.
 After=sow-now-portal.service sow-now-provision.service
-Requires=sow-now-provision.service
+Wants=sow-now-provision.service
+StartLimitIntervalSec=60
+StartLimitBurst=5
 
 [Service]
 Type=simple
@@ -17,8 +20,6 @@ ExecStart=/opt/sow-now-agent/venv/bin/python3 -m agent.main
 # Restart automatically on any non-zero exit
 Restart=on-failure
 RestartSec=10
-StartLimitIntervalSec=60
-StartLimitBurst=5
 
 # Security hardening
 NoNewPrivileges=true
@@ -27,7 +28,7 @@ ProtectHome=true
 ReadWritePaths=/var/lib/sow-now
 ReadWritePaths=/etc/sow-now
 PrivateTmp=true
-PrivateDevices=false   # false — needs access to USB RTL-SDR device
+PrivateDevices=false
 
 Environment=PYTHONUNBUFFERED=1
 StandardOutput=journal

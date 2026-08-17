@@ -43,21 +43,41 @@ apt-get install -y -qq \
     unzip \
     ufw \
     unattended-upgrades \
-    apt-listchanges
+    apt-listchanges \
+    sqlite3
 
-# ── 3. Install rtl_433 from source (armv6 compatible) ────────────────────────
+# ── 3. Build librtlsdr 0.9 from source ───────────────────────────────────────
+# Debian bookworm ships librtlsdr 0.6 which causes PLL lock failures at 868 MHz
+# on R820T/R828D tuners. librtlsdr 0.9 fixes this. We build from source and
+# install to /usr/local so it takes precedence over the system 0.6 package.
 apt-get install -y -qq \
     cmake \
     libusb-1.0-0-dev \
-    librtlsdr-dev \
-    build-essential
+    build-essential \
+    git
 
+git clone --depth 1 https://github.com/librtlsdr/librtlsdr.git /tmp/librtlsdr
+cmake -S /tmp/librtlsdr -B /tmp/librtlsdr-build \
+    -DCMAKE_BUILD_TYPE=Release \
+    -DCMAKE_INSTALL_PREFIX=/usr/local \
+    -DDETACH_KERNEL_DRIVER=ON
+cmake --build /tmp/librtlsdr-build --parallel 2
+cmake --install /tmp/librtlsdr-build
+rm -rf /tmp/librtlsdr /tmp/librtlsdr-build
+
+# Remove the apt librtlsdr 0.6 so the dynamic linker uses our 0.9 build
+apt-get remove -y librtlsdr0 librtlsdr-dev 2>/dev/null || true
+echo "/usr/local/lib" | tee /etc/ld.so.conf.d/local.conf
+ldconfig
+
+# ── 3b. Build rtl_433 from source linked against librtlsdr 0.9 ───────────────
 RTL433_VERSION="25.12"
 curl -fsSL "https://github.com/merbanan/rtl_433/archive/refs/tags/${RTL433_VERSION}.tar.gz" -o /tmp/rtl433.tar.gz
 tar -xf /tmp/rtl433.tar.gz -C /tmp
 cmake -S /tmp/rtl_433-${RTL433_VERSION} -B /tmp/rtl433-build \
     -DCMAKE_BUILD_TYPE=Release \
-    -DCMAKE_INSTALL_PREFIX=/usr/local
+    -DCMAKE_INSTALL_PREFIX=/usr/local \
+    -DCMAKE_PREFIX_PATH=/usr/local
 cmake --build /tmp/rtl433-build --parallel 2
 cmake --install /tmp/rtl433-build
 rm -rf /tmp/rtl433.tar.gz /tmp/rtl_433-${RTL433_VERSION} /tmp/rtl433-build

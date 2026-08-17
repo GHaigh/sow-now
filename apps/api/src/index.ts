@@ -10,11 +10,15 @@
  *   GET  /api/v1/crops                    — user's crop list
  *   POST /api/v1/crops                    — add a crop
  *   PATCH /api/v1/crops/:id               — update crop status
+ *   DELETE /api/v1/crops/:id              — remove a crop
  *   GET  /api/v1/varieties?crop_key=tomato — search varieties
  *   GET  /api/v1/varieties/:id/predict    — planting plan for a variety
  *   POST /api/v1/varieties                — submit community variety
  *   POST /api/v1/sensors/claim/start      — start a sensor claim window
  *   GET  /api/v1/sensors/claim/:id        — poll for claim result
+ *   PATCH /api/v1/me/location             — update postcode / climate zone
+ *   POST   /api/v1/me/push-subscribe      — register Web Push subscription
+ *   DELETE /api/v1/me/push-subscribe      — remove Web Push subscription
  *
  * Scheduled (cron 30 5 * * *):
  *   GDD engine + advice generation
@@ -30,6 +34,7 @@ import { handleAuth, getMe }     from './routes/auth';
 import { handleSensors }         from './routes/sensors';
 import { handleClaimStart, handleClaimPoll, handleCandidates, handleConfirm, handleWH51Candidates, handleWH51Confirm } from './routes/claim';
 import { handleVarieties }        from './routes/varieties';
+import { handlePushSubscription } from './routes/push';
 import { handleBilling }         from './routes/billing';
 import { handleStripeWebhook }   from './routes/stripe-webhook';
 import { handleAdviceQueue }     from './queue/advice-consumer';
@@ -107,6 +112,11 @@ export default {
       // ── Varieties + planting predictions ─────────────────────────────────
       if (path.startsWith('/api/v1/varieties')) {
         return handleVarieties(request, env, ctx);
+      }
+
+      // ── Push subscription ─────────────────────────────────────────────────
+      if (path === '/api/v1/me/push-subscribe') {
+        return handlePushSubscription(request, env, ctx);
       }
 
       // ── Billing routes (user session auth) ───────────────────────────────

@@ -1,14 +1,21 @@
 """
 rtl_433 reader — decodes all Ecowitt / Fine Offset sensors via RTL-SDR.
 
-Supported devices:
-  Protocol 119  Fineoffset-WS68/WS69  — outdoor weather station (temp, humidity,
-                                         wind, rain, UV, solar)
-  Protocol 167  Fineoffset-WH51       — soil moisture sensor
-  Protocol  55  Fineoffset-WH25/WH31  — thermo-hygro sensor (greenhouse)
+Supported devices (decoded model names from rtl_433):
+  Fineoffset-WH51          — soil moisture sensor
+  AmbientWeather-WH31E     — thermo-hygro sensor (greenhouse / indoor)
+  Fineoffset-WHx080        — WS69 / PSG04174 outdoor weather station
+
+Modulation note: WH51 and WN31/WH31E use FSK_PCM. Do NOT use -Y classic or
+-s 250k — those flags force OOK-only demodulation and suppress FSK entirely.
+rtl_433 default sample rate (1 MHz) and auto demodulator must be used.
+
+Protocol filter note: The WS69/PSG04174 decodes as Fineoffset-WHx080 which is
+not covered by a single known protocol number. We run all 253 default decoders
+and filter by model name in Python rather than in rtl_433.
 
 rtl_433 is launched with:
-  rtl_433 -f 868000000 -F json -M utc -R 0 -R 119 -R 167 -R 55
+  rtl_433 -f 868000000 -F json -M utc -M level
 """
 
 import asyncio
@@ -20,10 +27,9 @@ from agent.config import Config
 
 log = logging.getLogger("sow-now.rtl433")
 
-# rtl_433 protocol numbers
-PROTOCOL_WS69  = 119   # Fineoffset-WS68/WS69 — weather station
-PROTOCOL_WH51  = 167   # Fineoffset-WH51      — soil moisture
-PROTOCOL_WH31  = 55    # Fineoffset-WH25/31   — thermo-hygro (greenhouse)
+# Model name substrings matched in _parse_and_buffer.
+# The WS69/PSG04174 decodes as "Fineoffset-WHx080" (WH1080 family decoder).
+# Running all default decoders avoids protocol number fragility across rtl_433 versions.
 
 
 class Rtl433Reader:
@@ -43,14 +49,14 @@ class Rtl433Reader:
         cmd = [
             self._config.rtl433_cmd,
             "-f", str(self._config.ws_frequency_hz),
-            "-Y", "classic",                  # use classic demodulator (required for Ecowitt)
-            "-s", "250k",                     # 250k sample rate (required for Ecowitt on rtl_433 25.12+)
+            # No -Y classic, no -s 250k — WH51/WN31/WS69 all use FSK_PCM which
+            # requires the default 1MHz sample rate and auto demodulator.
+            # No -R protocol filter — WS69/PSG04174 decodes as Fineoffset-WHx080
+            # which has no single reliable protocol number across rtl_433 versions.
+            # Python-side model name matching handles the filtering instead.
             "-F", "json",
             "-M", "utc",
-            "-R", "0",                        # disable all decoders first
-            "-R", str(PROTOCOL_WS69),         # WS69 weather station
-            "-R", str(PROTOCOL_WH51),         # WH51 soil moisture
-            "-R", str(PROTOCOL_WH31),         # WH31 greenhouse thermo-hygro
+            "-M", "level",                    # include RSSI/SNR in JSON output for range diagnostics
         ]
 
         log.info("Starting rtl_433: %s", " ".join(cmd))
@@ -91,12 +97,17 @@ class Rtl433Reader:
 
         model = data.get("model", "")
 
-        if "WH51" in model or "Fineoffset-WH51" in model:
+        if "WH51" in model:
             self._handle_wh51(data, buffer)
-        elif "WH25" in model or "WH31" in model or "Fineoffset-WH25" in model:
+        elif "WH31" in model or "WH25" in model:
             self._handle_wh31(data, buffer)
-        elif "Fineoffset" in model or "Fine_Offset" in model:
+        elif "WHx080" in model or "WH1080" in model or "WH3080" in model:
             self._handle_ws69(data, buffer)
+        elif "Marlec-Solar" in model:
+            # PSG04174/WS69 outputs as Marlec-Solar with raw hex payload.
+            # The raw field is not yet decoded — log receipt for diagnostics.
+            log.info("WS69 raw packet received (Marlec-Solar) — raw=%s rssi=%s",
+                     data.get("raw", "?")[:20], data.get("rssi", "?"))
         # else: unknown model — silently ignore
 
     # ── WH31 channel routing ──────────────────────────────────────────────────
@@ -108,28 +119,42 @@ class Rtl433Reader:
     # ── WS69 weather station ──────────────────────────────────────────────────
 
     def _handle_ws69(self, data: dict, buffer: ReadingBuffer) -> None:
-        device_id = str(data.get("id", "ws69"))
+        device_id = str(data.get("id") or data.get("Station ID", "ws69"))
+
+        # WHx080 decoder reports wind speed in km/h — convert to m/s
+        wind_avg_kmh = data.get("wind_avg_speed") or data.get("Wind avg speed")
+        wind_max_kmh = data.get("wind_gust") or data.get("Wind gust")
+        wind_avg_ms  = round(wind_avg_kmh / 3.6, 2) if wind_avg_kmh is not None else None
+        wind_max_ms  = round(wind_max_kmh / 3.6, 2) if wind_max_kmh is not None else None
+
+        # WHx080 uses "Wind Direction" (degrees), WS69 uses "wind_dir_deg"
+        wind_dir = data.get("wind_dir_deg") or data.get("Wind Direction") or data.get("wind_direction")
+
+        # Rain: WHx080 reports "Total rainfall" cumulative mm
+        rain_mm = data.get("rain_mm") or data.get("Total rainfall")
+
         reading: dict = {
             "sensor_rf_id": f"ws69_{device_id}",
             "sensor_type":  "weather_station",
             "recorded_at":  int(time.time()),
-            "temp_c":       data.get("temperature_C"),
-            "humidity_pct": data.get("humidity"),
+            "temp_c":       data.get("temperature_C") or data.get("Temperature"),
+            "humidity_pct": data.get("humidity") or data.get("Humidity"),
             "pressure_hpa": data.get("pressure_hPa"),
-            "wind_avg_ms":  data.get("wind_avg_m_s"),
-            "wind_max_ms":  data.get("wind_max_m_s"),
-            "wind_dir_deg": data.get("wind_dir_deg"),
-            "rain_mm":      data.get("rain_mm"),
-            "uv_index":     data.get("uv"),
-            "solar_lux":    data.get("solar_lux"),
+            "wind_avg_ms":  wind_avg_ms,
+            "wind_max_ms":  wind_max_ms,
+            "wind_dir_deg": wind_dir,
+            "rain_mm":      rain_mm,
+            "uv_index":     data.get("uv") or data.get("UV Index"),
+            "solar_lux":    data.get("solar_lux") or data.get("Lux"),
         }
         buffer.insert(reading)
-        log.debug(
-            "WS69 [%s]: temp=%.1f°C hum=%.0f%% wind=%.1fm/s",
+        log.info(
+            "WS69 [%s]: temp=%.1f°C hum=%.0f%% wind=%.1fm/s rssi=%s",
             device_id,
             reading["temp_c"] or 0,
             reading["humidity_pct"] or 0,
             reading["wind_avg_ms"] or 0,
+            data.get("rssi", "?"),
         )
 
     # ── WH51 soil moisture ────────────────────────────────────────────────────
@@ -154,12 +179,13 @@ class Rtl433Reader:
             "battery_pct":       battery_pct,
         }
         buffer.insert(reading)
-        log.debug(
-            "WH51 [%s]: moisture=%.0f%% soil_temp=%s bat=%d%%",
+        log.info(
+            "WH51 [%s]: moisture=%.0f%% soil_temp=%s bat=%d%% rssi=%s",
             device_id,
             moisture or 0,
             reading["soil_temp_c"],
             battery_pct,
+            data.get("rssi", "?"),
         )
 
     # ── WH31 greenhouse thermo-hygro ──────────────────────────────────────────
@@ -183,8 +209,9 @@ class Rtl433Reader:
                 "indoor_humidity_pct": humidity,
                 "battery_pct":         100 if battery_ok else 10,
             }
-            log.debug("WH31 [%s] ch%s (indoor): temp=%.1f°C hum=%.0f%% bat=%s",
-                      device_id, channel, temp or 0, humidity or 0, "ok" if battery_ok else "low")
+            log.info("WH31 [%s] ch%s (indoor): temp=%.1f°C hum=%.0f%% bat=%s rssi=%s",
+                     device_id, channel, temp or 0, humidity or 0, "ok" if battery_ok else "low",
+                     data.get("rssi", "?"))
         else:
             reading = {
                 "sensor_rf_id":            f"wh31_{device_id}_ch{channel}",
@@ -194,7 +221,8 @@ class Rtl433Reader:
                 "greenhouse_humidity_pct": humidity,
                 "battery_pct":             100 if battery_ok else 10,
             }
-            log.debug("WH31 [%s] ch%s (greenhouse): temp=%.1f°C hum=%.0f%% bat=%s",
-                      device_id, channel, temp or 0, humidity or 0, "ok" if battery_ok else "low")
+            log.info("WH31 [%s] ch%s (greenhouse): temp=%.1f°C hum=%.0f%% bat=%s rssi=%s",
+                     device_id, channel, temp or 0, humidity or 0, "ok" if battery_ok else "low",
+                     data.get("rssi", "?"))
 
         buffer.insert(reading)

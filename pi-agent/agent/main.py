@@ -48,15 +48,31 @@ async def main() -> None:
     # Graceful shutdown on SIGTERM / SIGINT
     shutdown_event = asyncio.Event()
     loop = asyncio.get_running_loop()
+
+    gather_task: asyncio.Task | None = None
+
+    def _handle_shutdown() -> None:
+        shutdown_event.set()
+        # Cancel the gather immediately so tasks exit without waiting for
+        # their next poll cycle — ensures rtl_433 subprocess is terminated
+        # before Python exits and systemd gives up waiting.
+        if gather_task is not None:
+            gather_task.cancel()
+
     for sig in (signal.SIGTERM, signal.SIGINT):
-        loop.add_signal_handler(sig, shutdown_event.set)
+        loop.add_signal_handler(sig, _handle_shutdown)
 
     log.info("Starting RTL-SDR reader and uplink task")
 
-    await asyncio.gather(
+    gather_task = asyncio.ensure_future(asyncio.gather(
         rtl_reader.run(buffer, shutdown_event),
         uplink.run(buffer, shutdown_event),
-    )
+        return_exceptions=True,
+    ))
+    try:
+        await gather_task
+    except asyncio.CancelledError:
+        pass
 
     log.info("Vernal agent stopped cleanly")
 
