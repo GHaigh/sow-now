@@ -135,19 +135,76 @@ function GddCard({ label, value, icon, delta }: { label: string; value: number; 
   );
 }
 
+// Colours for each GDD zone bar
+const ZONE_COLOR: Record<string, string> = {
+  outdoor:    '#166534',
+  greenhouse: '#d97706',
+  indoor:     '#2563eb',
+};
+
 function GddChart({ trend }: { trend: Array<{ date: string; gdd: number; zone: string }> }) {
-  const outdoor = trend.filter(t => t.zone === 'outdoor').slice(-7);
-  if (outdoor.length === 0) return null;
-  const max = Math.max(...outdoor.map(t => t.gdd), 1);
+  // Collect the last 7 distinct dates present in the data
+  const dates = [...new Set(trend.map(t => t.date))].sort().slice(-7);
+  if (dates.length === 0) return null;
+
+  // Build a lookup: date → { zone → gdd }
+  const byDate: Record<string, Record<string, number>> = {};
+  for (const row of trend) {
+    if (!byDate[row.date]) byDate[row.date] = {};
+    byDate[row.date]![row.zone] = row.gdd;
+  }
+
+  // Which zones are actually present?
+  const zones = (['outdoor', 'greenhouse', 'indoor'] as const).filter(z =>
+    trend.some(t => t.zone === z),
+  );
+
+  // Scale bars relative to the overall max GDD value
+  const allGdd = trend.map(t => t.gdd);
+  const max = Math.max(...allGdd, 1);
 
   return (
-    <div className={styles.chart}>
-      {outdoor.map(t => (
-        <div key={t.date} className={styles.chartCol}>
-          <div className={styles.chartBar} style={{ height: `${(t.gdd / max) * 100}%` }} />
-          <div className={styles.chartLabel}>{new Date(t.date).toLocaleDateString('en-GB', { weekday: 'short' }).slice(0, 1)}</div>
+    <div>
+      <div className={styles.chart}>
+        {dates.map(date => (
+          <div key={date} className={styles.chartCol}>
+            {/* Stack the zone bars for this date */}
+            <div style={{ display: 'flex', gap: 2, alignItems: 'flex-end', flex: 1, width: '100%' }}>
+              {zones.map(zone => {
+                const gdd = byDate[date]?.[zone] ?? 0;
+                return (
+                  <div
+                    key={zone}
+                    className={styles.chartBar}
+                    style={{
+                      flex: 1,
+                      height: `${(gdd / max) * 100}%`,
+                      background: ZONE_COLOR[zone],
+                      opacity: gdd === 0 ? 0.15 : 1,
+                    }}
+                  />
+                );
+              })}
+            </div>
+            <div className={styles.chartLabel}>
+              {new Date(date).toLocaleDateString('en-GB', { weekday: 'short' }).slice(0, 1)}
+            </div>
+          </div>
+        ))}
+      </div>
+      {/* Legend — only shown when >1 zone */}
+      {zones.length > 1 && (
+        <div style={{ display: 'flex', gap: 12, marginTop: 6, flexWrap: 'wrap' }}>
+          {zones.map(zone => (
+            <div key={zone} style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
+              <div style={{ width: 8, height: 8, borderRadius: 2, background: ZONE_COLOR[zone], flexShrink: 0 }} />
+              <span style={{ fontSize: '0.65rem', color: '#9ca3af', textTransform: 'capitalize' }}>
+                {zone === 'greenhouse' ? 'Greenhouse' : zone === 'indoor' ? 'Indoors' : 'Garden'}
+              </span>
+            </div>
+          ))}
         </div>
-      ))}
+      )}
     </div>
   );
 }
