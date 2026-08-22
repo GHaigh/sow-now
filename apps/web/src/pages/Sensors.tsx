@@ -19,8 +19,8 @@ interface DeviceInfo {
   firmware_version: string | null;
 }
 
-const TYPE_ICON: Record<string, string>  = { weather_station: '🌤', soil: '💧', greenhouse: '🏡', indoor: '🌡' };
-const TYPE_LABEL: Record<string, string> = { weather_station: 'Weather Station', soil: 'Soil Sensor', greenhouse: 'Greenhouse', indoor: 'Indoor Sensor' };
+const TYPE_ICON: Record<string, string>  = { soil: '💧', greenhouse: '🏡', indoor: '🌡' };
+const TYPE_LABEL: Record<string, string> = { soil: 'Soil Sensor', greenhouse: 'Greenhouse', indoor: 'Indoor Sensor' };
 
 export function SensorsPage() {
   const [device, setDevice]   = useState<DeviceInfo | null>(null);

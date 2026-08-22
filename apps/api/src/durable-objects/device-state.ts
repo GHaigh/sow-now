@@ -19,9 +19,6 @@ interface LatestReadings {
   outdoor: {
     temp_c: number | null;
     humidity_pct: number | null;
-    wind_avg_ms: number | null;
-    rain_mm: number | null;
-    uv_index: number | null;
     recorded_at: number | null;
   };
   greenhouse: {
@@ -53,7 +50,7 @@ interface DeviceState {
 
 const DEFAULT_STATE: DeviceState = {
   latest: {
-    outdoor:    { temp_c: null, humidity_pct: null, wind_avg_ms: null, rain_mm: null, uv_index: null, recorded_at: null },
+    outdoor:    { temp_c: null, humidity_pct: null, recorded_at: null },
     greenhouse: { temp_c: null, humidity_pct: null, recorded_at: null },
     indoor:     { temp_c: null, humidity_pct: null, recorded_at: null },
     soil: {},
@@ -109,16 +106,7 @@ export class DeviceStateDO {
       const sensorType = r['sensor_type'] as string;
       const rfId = r['sensor_rf_id'] as string;
 
-      if (sensorType === 'weather_station') {
-        this.deviceState.latest.outdoor = {
-          temp_c:       (r['temp_c'] as number | null) ?? this.deviceState.latest.outdoor.temp_c,
-          humidity_pct: (r['humidity_pct'] as number | null) ?? this.deviceState.latest.outdoor.humidity_pct,
-          wind_avg_ms:  (r['wind_avg_ms'] as number | null) ?? this.deviceState.latest.outdoor.wind_avg_ms,
-          rain_mm:      (r['rain_mm'] as number | null) ?? this.deviceState.latest.outdoor.rain_mm,
-          uv_index:     (r['uv_index'] as number | null) ?? this.deviceState.latest.outdoor.uv_index,
-          recorded_at:  (r['recorded_at'] as number) ?? this.deviceState.latest.outdoor.recorded_at,
-        };
-      } else if (sensorType === 'greenhouse') {
+      if (sensorType === 'greenhouse') {
         this.deviceState.latest.greenhouse = {
           temp_c:       (r['greenhouse_temp_c'] as number | null) ?? this.deviceState.latest.greenhouse.temp_c,
           humidity_pct: (r['greenhouse_humidity_pct'] as number | null) ?? this.deviceState.latest.greenhouse.humidity_pct,

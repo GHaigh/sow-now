@@ -5,7 +5,7 @@ import styles from './Dashboard.module.css';
 interface DashboardData {
   device: { name: string; online: boolean; last_seen_at: number | null };
   latest: {
-    outdoor: { temp_c: number | null; humidity_pct: number | null; wind_avg_ms: number | null; rain_mm: number | null };
+    outdoor: { temp_c: number | null; humidity_pct: number | null };
     greenhouse: { temp_c: number | null; humidity_pct: number | null };
     indoor: { temp_c: number | null; humidity_pct: number | null };
     soil: Record<string, { moisture_pct: number | null; temp_c: number | null; battery_pct: number | null }>;
@@ -64,9 +64,10 @@ export function DashboardPage() {
       <div className={styles.section}>
         <h2 className={styles.sectionTitle}>Growing Degree Days</h2>
         <div className={styles.gddCards}>
-          <GddCard label="Garden" value={gdd.outdoor} icon="🌤" />
-          {gdd.greenhouse > 0 && <GddCard label="Greenhouse" value={gdd.greenhouse} icon="🏡" delta={gdd.greenhouse - gdd.outdoor} />}
-          {gdd.indoor > 0 && <GddCard label="Indoors" value={gdd.indoor} icon="🪴" delta={gdd.indoor - gdd.outdoor} />}
+          {gdd.greenhouse > 0
+            ? <GddCard label="Greenhouse" value={gdd.greenhouse} icon="🏡" />
+            : <GddCard label="Garden" value={gdd.outdoor} icon="🌱" />}
+          {gdd.indoor > 0 && <GddCard label="Indoors" value={gdd.indoor} icon="🪴" />}
         </div>
         {data.gdd_trend.length > 0 && <GddChart trend={data.gdd_trend} />}
       </div>
@@ -75,23 +76,17 @@ export function DashboardPage() {
       <div className={styles.section}>
         <h2 className={styles.sectionTitle}>Right now</h2>
         <div className={styles.sensorGrid}>
-          {latest.outdoor.temp_c != null && (
-            <SensorTile icon="🌡" label="Temp" value={`${latest.outdoor.temp_c.toFixed(1)}°C`} />
-          )}
-          {latest.outdoor.humidity_pct != null && (
-            <SensorTile icon="💧" label="Humidity" value={`${Math.round(latest.outdoor.humidity_pct)}%`} />
-          )}
-          {latest.outdoor.wind_avg_ms != null && (
-            <SensorTile icon="💨" label="Wind" value={`${latest.outdoor.wind_avg_ms.toFixed(1)} m/s`} />
-          )}
-          {latest.outdoor.rain_mm != null && (
-            <SensorTile icon="🌧" label="Rain" value={`${latest.outdoor.rain_mm.toFixed(1)} mm`} />
-          )}
           {latest.greenhouse.temp_c != null && (
             <SensorTile icon="🏡" label="Greenhouse" value={`${latest.greenhouse.temp_c.toFixed(1)}°C`} />
           )}
+          {latest.greenhouse.humidity_pct != null && (
+            <SensorTile icon="💧" label="GH Humidity" value={`${Math.round(latest.greenhouse.humidity_pct)}%`} />
+          )}
           {latest.indoor.temp_c != null && (
             <SensorTile icon="🪴" label="Indoors" value={`${latest.indoor.temp_c.toFixed(1)}°C`} />
+          )}
+          {latest.indoor.humidity_pct != null && (
+            <SensorTile icon="💧" label="Indoor Hum" value={`${Math.round(latest.indoor.humidity_pct)}%`} />
           )}
         </div>
 

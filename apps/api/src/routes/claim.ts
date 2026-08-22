@@ -85,8 +85,8 @@ export async function handleClaimStart(
   }
 
   const sensorType = body.sensor_type;
-  if (typeof sensorType !== 'string' || !['weather_station', 'soil', 'greenhouse', 'indoor'].includes(sensorType)) {
-    return errorResponse(400, 'sensor_type required (weather_station, soil, greenhouse, or indoor)');
+  if (typeof sensorType !== 'string' || !['soil', 'greenhouse', 'indoor'].includes(sensorType)) {
+    return errorResponse(400, 'sensor_type required (soil, greenhouse, or indoor)');
   }
 
   const claimId = nanoid();
@@ -248,10 +248,9 @@ export async function handleConfirm(
   }
 
   const defaultNames: Record<string, string> = {
-    weather_station: 'Weather Station',
-    soil:            'Soil Sensor',
-    greenhouse:      'Greenhouse',
-    indoor:          'Indoor Sensor',
+    soil:      'Soil Sensor',
+    greenhouse: 'Greenhouse',
+    indoor:    'Indoor Sensor',
   };
   const name = customName ?? defaultNames[existing.sensor_type] ?? 'Sensor';
 
@@ -323,17 +322,6 @@ function candidateFromRow(row: SensorRow) {
     last_seen_at: row.last_seen_at,
     battery_pct:  row.battery_pct,
   };
-
-  if (row.sensor_type === 'weather_station') {
-    return {
-      ...base,
-      temp_c:        row.snap_temp_c,
-      humidity_pct:  row.snap_humidity_pct,
-      wind_avg_ms:   row.snap_wind_avg_ms,
-      wind_dir_deg:  row.snap_wind_dir_deg,
-      rain_mm:       row.snap_rain_mm,
-    };
-  }
 
   if (row.sensor_type === 'soil') {
     return {

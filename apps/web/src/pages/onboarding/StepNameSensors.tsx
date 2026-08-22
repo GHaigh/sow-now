@@ -21,17 +21,15 @@ interface Props {
 }
 
 const TYPE_ICON: Record<string, string> = {
-  weather_station: '🌤',
-  soil:            '💧',
-  greenhouse:      '🏡',
-  indoor:          '🌡',
+  soil:      '💧',
+  greenhouse: '🏡',
+  indoor:    '🌡',
 };
 
 const TYPE_PLACEHOLDER: Record<string, string> = {
-  weather_station: 'e.g. Garden',
-  soil:            'e.g. Raised bed 1',
-  greenhouse:      'e.g. Greenhouse',
-  indoor:          'e.g. Propagator',
+  soil:      'e.g. Raised bed 1',
+  greenhouse: 'e.g. Greenhouse',
+  indoor:    'e.g. Propagator',
 };
 
 export function StepNameSensors({ onNext }: Props) {

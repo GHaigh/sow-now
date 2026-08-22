@@ -52,16 +52,13 @@ export async function pollSensorClaim(claimId: string): Promise<{
 
 export interface ScanCandidate {
   rf_id: string;
-  sensor_type: 'weather_station' | 'soil' | 'greenhouse' | 'indoor';
+  sensor_type: 'soil' | 'greenhouse' | 'indoor';
   last_seen_at: number | null;
   battery_pct: number | null;
-  // WS69
+  // WH31 (greenhouse / indoor)
   temp_c?: number | null;
   humidity_pct?: number | null;
-  wind_avg_ms?: number | null;
-  wind_dir_deg?: number | null;
-  rain_mm?: number | null;
-  // WH51
+  // WH51 (soil)
   last4?: string;
   soil_moisture_pct?: number | null;
   soil_temp_c?: number | null;

@@ -22,23 +22,15 @@ const SCAN_DURATION_S = 300; // 5 minutes
 const POLL_INTERVAL_MS = 5000;
 
 const TYPE_ICON: Record<string, string> = {
-  weather_station: '🌤',
-  soil:            '💧',
-  greenhouse:      '🏡',
-  indoor:          '🌡',
+  soil:      '💧',
+  greenhouse: '🏡',
+  indoor:    '🌡',
 };
 
 const TYPE_LABEL: Record<string, string> = {
-  weather_station: 'Weather Station',
-  soil:            'Soil Sensor',
-  greenhouse:      'Greenhouse Sensor',
-  indoor:          'Indoor Sensor',
-};
-
-const WIND_DIRS = ['N','NE','E','SE','S','SW','W','NW'] as const;
-const windDir = (deg: number | null | undefined): string => {
-  if (deg == null) return '';
-  return WIND_DIRS[Math.round(deg / 45) % 8] ?? '';
+  soil:      'Soil Sensor',
+  greenhouse: 'Greenhouse Sensor',
+  indoor:    'Indoor Sensor',
 };
 
 interface Props {
@@ -140,6 +132,8 @@ export function ScanSensors({ onDone }: Props) {
 
   const handleClaim = (c: ScanCandidate) => {
     if (claiming) return;
+    // greenhouse and indoor sensors require button-press confirmation;
+    // soil sensors are claimed directly by RF ID
     if (c.sensor_type === 'greenhouse' || c.sensor_type === 'indoor') {
       claimWH31(c.rf_id);
     } else {
@@ -287,12 +281,7 @@ function CandidateCard({ candidate: c, isClaiming, awaitingButton, disabled, onC
 function ReadingsSummary({ c }: { c: ScanCandidate }) {
   const parts: string[] = [];
 
-  if (c.sensor_type === 'weather_station') {
-    if (c.temp_c != null)       parts.push(`${c.temp_c.toFixed(1)}°C`);
-    if (c.humidity_pct != null) parts.push(`${Math.round(c.humidity_pct)}% humidity`);
-    if (c.wind_avg_ms != null)  parts.push(`wind ${c.wind_avg_ms.toFixed(1)} m/s ${windDir(c.wind_dir_deg)}`);
-    if (c.rain_mm != null && c.rain_mm > 0) parts.push(`rain ${c.rain_mm.toFixed(1)} mm`);
-  } else if (c.sensor_type === 'soil') {
+  if (c.sensor_type === 'soil') {
     if (c.soil_moisture_pct != null) parts.push(`${Math.round(c.soil_moisture_pct)}% moisture`);
     if (c.soil_temp_c != null)       parts.push(`${c.soil_temp_c.toFixed(1)}°C soil`);
     if (c.last4)                     parts.push(`ID …${c.last4}`);

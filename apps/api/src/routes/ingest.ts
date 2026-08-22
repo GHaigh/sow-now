@@ -64,9 +64,9 @@ export async function handleIngest(
   }
 
   // ── Parse body ───────────────────────────────────────────────────────────
-  let body: { readings?: unknown[] };
+  let body: { readings?: unknown[]; agent_version?: unknown };
   try {
-    body = await request.json() as { readings?: unknown[] };
+    body = await request.json() as { readings?: unknown[]; agent_version?: unknown };
   } catch {
     return errorResponse(400, 'Invalid JSON');
   }
@@ -87,11 +87,12 @@ export async function handleIngest(
 
   if (!device) return errorResponse(404, 'Device not found');
 
-  // ── Update device last_seen ──────────────────────────────────────────────
+  // ── Update device last_seen + firmware_version ───────────────────────────
+  const agentVersion = typeof body.agent_version === 'string' ? body.agent_version : null;
   ctx.waitUntil(
     env.DB
-      .prepare('UPDATE devices SET last_seen_at = ? WHERE id = ?')
-      .bind(Math.floor(Date.now() / 1000), deviceId)
+      .prepare('UPDATE devices SET last_seen_at = ?, firmware_version = COALESCE(?, firmware_version) WHERE id = ?')
+      .bind(Math.floor(Date.now() / 1000), agentVersion, deviceId)
       .run(),
   );
 
@@ -105,29 +106,24 @@ export async function handleIngest(
     if (typeof r['sensor_rf_id'] !== 'string') continue;
     if (typeof r['recorded_at'] !== 'number') continue;
     const sensorType = r['sensor_type'];
-    if (sensorType !== 'weather_station' && sensorType !== 'soil' && sensorType !== 'greenhouse' && sensorType !== 'indoor') continue;
+    if (sensorType !== 'soil' && sensorType !== 'greenhouse' && sensorType !== 'indoor') continue;
 
     const rfId = r['sensor_rf_id'] as string;
 
-    // Upsert sensor (insert if new RF ID seen for this device).
-    // Also update the snapshot columns so the claiming candidates endpoint
-    // can return live reading values without joining the readings table.
+    // Upsert sensor row; update snapshot columns for the candidates endpoint.
     stmts.push(
       env.DB.prepare(`
         INSERT INTO sensors (id, device_id, user_id, rf_id, sensor_type, last_seen_at,
-          snap_temp_c, snap_humidity_pct, snap_wind_avg_ms, snap_wind_dir_deg, snap_rain_mm,
+          snap_temp_c, snap_humidity_pct,
           snap_soil_moisture_pct, snap_soil_temp_c)
         VALUES (lower(hex(randomblob(8))), ?, ?, ?, ?, ?,
-          ?, ?, ?, ?, ?,
+          ?, ?,
           ?, ?)
         ON CONFLICT(device_id, rf_id) DO UPDATE SET
           last_seen_at           = excluded.last_seen_at,
           battery_pct            = COALESCE(?, battery_pct),
           snap_temp_c            = COALESCE(excluded.snap_temp_c,            snap_temp_c),
           snap_humidity_pct      = COALESCE(excluded.snap_humidity_pct,      snap_humidity_pct),
-          snap_wind_avg_ms       = COALESCE(excluded.snap_wind_avg_ms,       snap_wind_avg_ms),
-          snap_wind_dir_deg      = COALESCE(excluded.snap_wind_dir_deg,      snap_wind_dir_deg),
-          snap_rain_mm           = COALESCE(excluded.snap_rain_mm,           snap_rain_mm),
           snap_soil_moisture_pct = COALESCE(excluded.snap_soil_moisture_pct, snap_soil_moisture_pct),
           snap_soil_temp_c       = COALESCE(excluded.snap_soil_temp_c,       snap_soil_temp_c)
       `).bind(
@@ -135,9 +131,6 @@ export async function handleIngest(
         Math.floor(Date.now() / 1000),
         (r['temp_c'] as number | null) ?? null,
         (r['humidity_pct'] as number | null) ?? null,
-        (r['wind_avg_ms'] as number | null) ?? null,
-        (r['wind_dir_deg'] as number | null) ?? null,
-        (r['rain_mm'] as number | null) ?? null,
         (r['soil_moisture_pct'] as number | null) ?? null,
         (r['soil_temp_c'] as number | null) ?? null,
         // battery_pct for the DO UPDATE branch
@@ -150,18 +143,14 @@ export async function handleIngest(
       env.DB.prepare(`
         INSERT INTO readings (
           sensor_id, device_id, user_id, recorded_at,
-          temp_c, humidity_pct, pressure_hpa,
-          wind_avg_ms, wind_max_ms, wind_dir_deg,
-          rain_mm, uv_index, solar_lux,
+          temp_c, humidity_pct,
           soil_moisture_pct, soil_temp_c,
           greenhouse_temp_c, greenhouse_humidity_pct,
           indoor_temp_c, indoor_humidity_pct
         )
         SELECT
           s.id, ?, ?, ?,
-          ?, ?, ?,
-          ?, ?, ?,
-          ?, ?, ?,
+          ?, ?,
           ?, ?,
           ?, ?,
           ?, ?
@@ -171,13 +160,6 @@ export async function handleIngest(
         device.id, device.user_id, r['recorded_at'] as number,
         (r['temp_c'] as number | null) ?? null,
         (r['humidity_pct'] as number | null) ?? null,
-        (r['pressure_hpa'] as number | null) ?? null,
-        (r['wind_avg_ms'] as number | null) ?? null,
-        (r['wind_max_ms'] as number | null) ?? null,
-        (r['wind_dir_deg'] as number | null) ?? null,
-        (r['rain_mm'] as number | null) ?? null,
-        (r['uv_index'] as number | null) ?? null,
-        (r['solar_lux'] as number | null) ?? null,
         (r['soil_moisture_pct'] as number | null) ?? null,
         (r['soil_temp_c'] as number | null) ?? null,
         (r['greenhouse_temp_c'] as number | null) ?? null,
@@ -278,10 +260,9 @@ async function checkAndClaimBursts(
 
         // Apply a default name so the sensor appears in the poll response
         const defaultNames: Record<string, string> = {
-          weather_station: 'Weather Station',
-          soil:            'Soil Sensor',
-          greenhouse:      'Greenhouse',
-          indoor:          'Indoor Sensor',
+          soil:      'Soil Sensor',
+          greenhouse: 'Greenhouse',
+          indoor:    'Indoor Sensor',
         };
         const defaultName = defaultNames[claimWindow.sensor_type] ?? 'Sensor';
 

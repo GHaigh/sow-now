@@ -20,6 +20,7 @@ log = logging.getLogger("sow-now.uplink")
 
 MAX_BACKOFF_S  = 900   # 15 minutes max backoff on repeated failure
 BATCH_SIZE     = 200   # Max readings per POST
+AGENT_VERSION  = "0.2.0"
 
 
 class Uplink:
@@ -60,11 +61,11 @@ class Uplink:
         async with httpx.AsyncClient(timeout=30.0) as client:
             response = await client.post(
                 self._config.ingest_url,
-                json={"readings": readings_payload},
+                json={"readings": readings_payload, "agent_version": AGENT_VERSION},
                 headers={
                     "Authorization": f"Bearer {self._config.device_jwt}",
                     "Content-Type":  "application/json",
-                    "X-Vernal-Agent": "pi-agent/0.1.0",
+                    "X-Vernal-Agent": f"pi-agent/{AGENT_VERSION}",
                 },
             )
 

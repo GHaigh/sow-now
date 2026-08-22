@@ -52,31 +52,6 @@ async function processDevice(
   date: string,
   env: Env,
 ): Promise<void> {
-  // Outdoor GDD — from weather station readings
-  const outdoorStats = await env.DB.prepare(`
-    SELECT
-      MAX(temp_c) AS t_max,
-      MIN(temp_c) AS t_min
-    FROM readings r
-    JOIN sensors s ON r.sensor_id = s.id
-    WHERE r.user_id = ?
-      AND r.device_id = ?
-      AND s.sensor_type = 'weather_station'
-      AND r.recorded_at >= strftime('%s', ? || ' 00:00:00')
-      AND r.recorded_at <  strftime('%s', ? || ' 23:59:59')
-      AND r.temp_c IS NOT NULL
-  `).bind(userId, deviceId, date, date).first<{ t_max: number | null; t_min: number | null }>();
-
-  if (outdoorStats?.t_max != null && outdoorStats.t_min != null) {
-    const gdd = calcDailyGdd(outdoorStats.t_max, outdoorStats.t_min, 10);
-    await env.DB.prepare(`
-      INSERT INTO gdd_daily (user_id, device_id, date, zone, base_temp_c, t_max_c, t_min_c, gdd)
-      VALUES (?, ?, ?, 'outdoor', 10.0, ?, ?, ?)
-      ON CONFLICT(user_id, device_id, date, zone, base_temp_c)
-      DO UPDATE SET t_max_c = excluded.t_max_c, t_min_c = excluded.t_min_c, gdd = excluded.gdd
-    `).bind(userId, deviceId, date, outdoorStats.t_max, outdoorStats.t_min, gdd).run();
-  }
-
   // Greenhouse GDD — from greenhouse sensor readings
   const ghStats = await env.DB.prepare(`
     SELECT
