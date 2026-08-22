@@ -22,7 +22,7 @@ The 12-byte anemometer packet layout (confirmed by reverse engineering):
   Byte 6-7:  0x820e (fixed flags)
   Byte 8-9:  wind speed counter (little-endian uint16, units = 1/100 m/s × ~6.5)
   Byte 10:   0x80 (fixed)
-  Byte 11:   wind direction encoded (0x3f = 360°, scale TBD)
+  Byte 11:   wind direction encoded, inverted: dir = (256 - raw) * 360/256 % 360
 
 rtl_433 is launched with:
   rtl_433 -f 868000000 -F json -M utc -M level
@@ -160,11 +160,12 @@ class Rtl433Reader:
         wind_raw = b[8] | (b[9] << 8)
         wind_avg_ms = round(wind_raw / 160.0, 2) if wind_raw else 0.0
 
-        # Wind direction: byte 11 encodes 0-255 → 0-360°
-        # 0x3f (63) seen when wind ~NW, 0x80 (128) ~S — scale TBD.
-        # Treat as 360/256 per unit for now; will refine with more samples.
+        # Wind direction: byte 11 encodes 0-255 → 0-360°.
+        # Confirmed: raw 0x3f (63) → 89° naive, but WS90 next door showed
+        # ~270° (westerly) at the same time — encoding is inverted by 180°.
+        # Correct formula: subtract from 256 then scale, equivalent to +180° mod 360.
         wind_dir_raw = b[11]
-        wind_dir_deg = round(wind_dir_raw * 360 / 256)
+        wind_dir_deg = round((256 - wind_dir_raw) * 360 / 256) % 360
 
         device_id = f"{b[2]:02x}{b[3]:02x}"
 
